@@ -1,4 +1,4 @@
-<dom-module id="pathiko-home">
+<dom-module id="pathact-home">
     <style>
         :host {
             display: block;
@@ -124,9 +124,13 @@
             <div vertical layout center style="width:500px;">
                 <br>
                 <br>
-                <div class="megatitle">PATHiKO</div>
+                <div class="megatitle">
+                    <div class="horizontal layout center" style="margin-left:15px;">
+                        Path<span style="font-weight:normal;">Act</span>
+                    </div>
+                </div>
                 <!--<div class="megadescription">-->
-                <!--PATHiKO-->
+                <!--pathact-->
                 <!--</div>-->
                 <br>
 
@@ -144,21 +148,18 @@
         <div class="title">Overview</div>
 
         <div class="paragraph">
-            PATHiKO...
+            PathAct...
         </div>
 
-        <div class="paragraph">
-            PATHiKO...
-        </div>
 
         <div class="title2">Note:</div>
         <div class="paragraph2">
-            PATHiVAR web application makes an intensive use of the HTML5 standard and other cutting-edge web technologies such as Web Components, so only modern web browsers are fully supported.
+            PathAct web application makes an intensive use of the HTML5 standard and other cutting-edge web technologies such as Web Components, so only modern web browsers are fully supported.
         </div>
     </template>
     <script>
         Polymer({
-            is: 'pathiko-home',
+            is: 'pathact-home',
             annonymousLogin: function() {
                 this.fire('annonymous');
             }

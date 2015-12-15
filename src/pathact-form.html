@@ -1,0 +1,1396 @@
+<dom-module id="pathact-form">
+    <style>
+        :host {
+            display: block;
+            position: relative;
+            box-sizing: border-box;
+            height: 100%;
+            background-color: var(--light-secondary-color);
+            @apply(--layout-horizontal);
+        }
+
+        #form {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 10px;
+            /*margin: 0px auto 0px auto;*/
+            /*max-width: 1000px;*/
+            /*border: 1px solid #c6d0da;*/
+            /*box-shadow: 2px 6px 15px 8px rgba(0, 0, 0, 0.30);*/
+        }
+
+        #right {
+            position: relative;
+            width: 280px;
+            box-sizing: border-box;
+            height: 100%;
+        }
+
+        #left {
+            position: relative;
+            width: 220px;
+            box-sizing: border-box;
+            height: 100%;
+        }
+
+        #left > .jso-btn {
+            margin: 4px 0;
+        }
+
+        #center {
+            box-sizing: border-box;
+            height: 100%;
+            margin: 0 5px;
+        }
+
+        jso-network-viewer {
+            border: 1px solid var(--divider-color);
+        }
+
+        #koControl {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100px;
+            box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2);
+            background-color: var(--light-primary-color);
+            border: 1px solid var(--divider-color);
+            padding: 5px 10px 10px 10px;
+        }
+
+        #geneList,
+        #fileList,
+        #pathwayList,
+        #pathList {
+            display: block;
+            position: relative;
+            box-sizing: border-box;
+            overflow-y: auto;
+            border: 1px solid var(--divider-color);
+            background-color: var(--light-primary-color);
+        }
+
+        #pathwayList > div,
+        #pathList > div {
+            cursor: pointer;
+            padding: 1px 4px;
+            border: 1px solid transparent;
+            color: #555;
+        }
+
+        #pathwayList > div:hover,
+        #pathList > div:hover {
+            background-color: var(--hover-color);
+            border-color: var(--accent-color);
+        }
+
+        #pathwayList > div[data-checked],
+        #pathList > div[data-checked] {
+            background-color: var(--accent-color);
+        }
+
+        #pathwayList > div[data-haschanged],
+        #pathList > div[data-haschanged] {
+            color: #000;
+            font-weight: bold;
+        }
+
+        #pathwayList > div[data-sig],
+        #pathList > div[data-sig] {
+            color: #000;
+            font-weight: bold;
+        }
+
+        #pathwayList > div > .sig[data-sig]:before {
+            font-family: FontAwesome;
+            content: '\f12a';
+            color: #a500ff;
+            margin-right: 3px;
+        }
+
+        #pathList > div[data-status="UP"]:before {
+            font-family: FontAwesome;
+            margin-right: 3px;
+            content: '\f176';
+            color: #cc0000;
+        }
+
+        #pathList > div[data-status="DOWN"]:before {
+            font-family: FontAwesome;
+            margin-right: 3px;
+            content: '\f175';
+            color: #005aa3;
+        }
+
+        #fileList {
+            padding: 4px;
+        }
+
+        #selectButton,
+        #updateGenesButton {
+            /*height:auto;*/
+            /*padding:5px 5px;*/
+            /*color: var(--default-primary-color);*/
+            background-color: #d75a00;
+            /*border-color: var(--dark-primary-color);*/
+            color: var(--text-primary-color);
+        }
+
+        #selectButton:hover,
+        #updateGenesButton:hover {
+            background-color: #ee6908;
+        }
+
+        #geneSearch {
+            width: 100%;
+            margin-bottom: 3px;
+        }
+        /**/
+
+        #title {
+            text-align: center;
+            font-size: 20px;
+            color: #666;
+        }
+
+        .coment {
+            color: #666;
+        }
+
+        .conditionTextArea {
+            box-sizing: border-box;
+            width: 25%;
+            height: 25px;
+            resize: none;
+        }
+
+        .errmsg {
+            color: #8b0000;
+            margin-bottom: 5px;
+            font-style: italic;
+        }
+
+        #pathwaysContent {
+            height: 300px;
+        }
+
+        textarea {
+            resize: none;
+            width: 100%;
+            height: 150px;
+        }
+
+        jso-select {
+            width: 200px;
+        }
+    </style>
+    <template>
+        <form id="form" class="horizontal layout">
+            <div id="left" class="vertical layout">
+                <label class="jso">Expression matrix files:</label>
+                <div id="selectButton" class="jso-btn jso-btn-shdw" on-click="handleOpenBrowser"> <i class="fa fa-cloud-upload"></i>&nbsp;Load file... </div>
+                <div id="fileList" style="height:200px;">
+                    <template is="dom-repeat" items="{{files}}">
+                        <pathact-file-option file="{{item}}" on-click="handleFileClick" data-checked$="{{isFileSelected(item, selectedFile)}}"></pathact-file-option>
+                    </template>
+                </div>
+
+                <!-- <div id="selectButton" class="jso-btn jso-btn-shdw" on-click="handleOpenFile"> Open file... </div> -->
+                <!-- <input type="file" style="position: fixed; top: -100em" id="openInput" on-change="handleOpenInputChange"> -->
+
+                <label class="jso" style="margin-top:20px;">Gene list:</label>
+                <div id="updateGenesButton" class="jso-btn jso-btn-shdw" on-click="handleUpdateButton"> <i class="fa fa-refresh"></i>&nbsp;Update </div>
+                <jso-search id="geneSearch" placeholder="Search genes..." on-select="handleGeneSearch"></jso-search>
+                <div id="geneList" style="height:200px;">
+                    <template is="dom-repeat" items="{{geneList}}">
+                        <pathact-gene-option name="{{item.name}}" value="{{item.value}}" on-remove="handleRemoveGene" on-change="handleChangeGene"></pathact-gene-option>
+                    </template>
+                </div>
+
+                <label class="jso" style="margin-top:20px;">Gene related drugs:</label>
+                <div class="">
+                </div>
+                <label class="jso" style="margin-top:20px;">Drug related genes:</label>
+                <div class="">
+                </div>
+            </div>
+            <div id="center" class="flex">
+                <div class="horizontal layout center">
+                    <label class="jso flex">Pathway viewer:</label>
+                    <div hidden$="{{!centerLoading}}" style="margin-right:10px;"><i class="fa fa-circle-o-notch fa-spin"></i> Loading...</div>
+                </div>
+                <jso-network-viewer id="networkViewer" style="height:calc(100% - 22px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar on-leftclickvertex="handleNetworkViewerVertexClick"></jso-network-viewer>
+            </div>
+            <div id="right">
+                <label class="jso">Pathway list:</label>
+                <div id="pathwayList" style="height:calc(50% - 23px);">
+                    <template is="dom-repeat" items="{{pathwayList}}">
+                        <div on-click="handlePathwayClick" data-checked$="{{isPathwaySelected(item, selectedPathway)}}" data-sig$="{{item.sig}}" data-haschanged$="{{item.haschanged}}">
+                            <span class="sig" data-sig$="{{item.sig}}"></span>
+                            <span class="hasch" data-haschanged$="{{item.haschanged}}"></span>{{item.name}}</div>
+                    </template>
+                </div>
+                <label class="jso" style="margin-top:5px;">Subpath list:</label>
+                <div id="pathList" style="height:calc(50% - 23px);">
+                    <template is="dom-repeat" items="{{pathList}}">
+                        <div on-click="handlePathClick" data-checked$="{{isPathSelected(item, selectedPath)}}" data-haschanged$="{{item.haschanged}}" data-status$="{{item.status}}">{{item.name}}</div>
+                    </template>
+                </div>
+            </div>
+
+            <div id="koControl">
+                <label class="jso">Knockout value:</label>
+                <input class="jso" type="number" min="0" max="1" step="0.1" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
+            </div>
+
+            <jso-panel hidden fixed modal closable id="browserPanel">
+                <div class="header">
+                    Select expression matrix file...
+                </div>
+                <jso-opencga-browser enable-select-ok id="browser" class="container flex" mode="file" on-fileselect="handleBrowserFileSelect" on-ok-click="handleBrowserOkClick" on-file-uploaded="handleBrowserFileUploaded" bioformats="{{bioformats}}" projects="{{projects}}"></jso-opencga-browser>
+            </jso-panel>
+
+            <!-- <div class="horizontal layout center-justified">
+                <div class="jso-btn jso-btn-shdw"><i class="fa fa-rocket"></i> &nbsp; Run example</div>
+            </div>
+            <br> -->
+
+            <!--
+            <div class="jso-formbox">
+                <div class="jso-formtitle">
+                    Species
+                </div>
+                <div class="jso-formcontent ">
+                    <label class="jso-control">
+                        <input type="radio" name="species" checked="true" on-click="selectHumanSpecie">
+                        <span>Human (Homo sapiens)</span>
+                    </label>
+                </div>
+            </div>
+            <div class="jso-formbox">
+                <div class="jso-formtitle">
+                    Input data
+                </div>
+                <div class="jso-formcontent">
+                    <div>Expression matrix file: &nbsp;
+                        <jso-opencga-file-origin id="exp_file" selectedStudy="{{selectedStudy}}" selection-mode="file" bioformats="{{bioformats}}" projects="{{projects}}" on-ok-click="checkExpFile">
+                        </jso-opencga-file-origin>
+                        <span id="exp_fileError" class="errmsg"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="horizontal layout center">
+                <div class="jso-formbox flex" style="margin-right:5px;height:200px;">
+                    <div class="jso-formtitle horizontal layout">
+                        <div class="flex">Knockout genes</div>
+                        <jso-search id="knockoutGenesSearch" placeholder="Search genes..." on-select="handleKnockoutSearch" style="margin: 0 5px 0 20px;"></jso-search>
+                    </div>
+                    <div class="jso-formcontent">
+                        <textarea class="jso" value="{{knockoutGeneText::input}}"></textarea>
+                    </div>
+                </div>
+                <div class="jso-formbox flex" style="margin-left:5px;height:200px;">
+                    <div class="jso-formtitle horizontal layout">
+                        <div class="flex">Over expressed genes</div>
+                        <jso-search id="raiseGenesSearch" placeholder="Search genes..." on-select="handleRaiseSearch" style="margin: 0 5px 0 20px;"></jso-search>
+                    </div>
+                    <div class="jso-formcontent">
+                        <textarea class="jso" value="{{raiseGeneText::input}}"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="jso-formbox" style="height:200px;">
+                <div class="jso-formtitle horizontal layout">
+                    <div class="flex">Drugs</div>
+                    <jso-search id="" placeholder="Search drugs..." on-select="" style="margin: 0 5px 0 20px;"></jso-search>
+                </div>
+                <div class="jso-formcontent horizontal layout center">
+                    <textarea class="jso flex" value=""></textarea>
+                    <div class="jso flex" style="margin-left:10px;">
+                        <label class="jso">Drug target genes:</label>
+                        <div style="height:125px;paddin:5px;border:1px solid lightgray">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="jso-formbox">
+                <div class="jso-formtitle">
+                    Parameters
+                </div>
+                <div class="jso-formcontent">
+                    <label class="jso-control">
+                        <input type="checkbox" name="decompose">
+                        <span>Decompose paths</span>
+                    </label>
+                    <label class="jso-control">
+                        <input type="checkbox" name="difexp">
+                        <span>Color nodes by differential expression</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="jso-formbox">
+                <div class="jso-formtitle">
+                    Function level analysis
+                </div>
+                <div class="jso-formcontent">
+                    <label class="jso-control">
+                        <input type="checkbox" name="go">
+                        <span>Gene ontology</span>
+                    </label>
+                    <label class="jso-control">
+                        <input type="checkbox" name="uniprot">
+                        <span>Uniprot keywords</span>
+                    </label>
+                </div>
+            </div>
+
+
+            <div class="jso-formbox">
+                <div class="jso-formtitle horizontal layout center">
+                    <div class="flex">Pathways</div>
+                    <label class="jso-control">
+                        <input type="checkbox" checked on-change="handleSelectPW">
+                        <span style="font-size:13px;">All</span>
+                    </label>
+                </div>
+                <span id="pathwaysError" class="errmsg"></span>
+                <div id="pathwaysContent" class="jso-formcontent" style="overflow-y:scroll;">
+                    <template is="dom-repeat" items="{{pathwayList}}">
+                        <label class="jso-control">
+                            <input type="checkbox" value="{{item.value}}" checked$="{{item.selected}}">
+                            <span>{{item.name}}</span>
+                        </label>
+                    </template>
+                </div>
+            </div>
+
+            <div class="jso-formbox">
+                <div class="jso-formtitle">
+                    Job information
+                </div>
+                <div class="jso-formcontent">
+                    <div>Output folder: &nbsp;
+                        <jso-opencga-file-origin id="output_folder" selection-mode="folder" bioformats="{{bioformats}}" projects="{{projects}}">
+                        </jso-opencga-file-origin>
+                        <span id="output_folderError" class="errmsg"></span>
+                    </div>
+                    <br>
+                    <div class="coment">Job name</div>
+                    <input type="text" id="jobName" class="jso" style="width:200px;" value="Pathways job" />
+                    <div class="coment">Description</div>
+                    <textarea id="jobDescription" class="jso" style="width:200px;"></textarea>
+                </div>
+            </div>
+
+            <span class="errmsg">{{errorMessage}}</span>
+            <div class="horizontal layout center-justified">
+                <div class="jso-btn jso-btn-shdw jso-btn-big" on-click="launchJob"><i class="fa fa-rocket"></i> &nbsp; Launch Job</div>
+            </div>
+            <br> -->
+        </form>
+
+
+    </template>
+
+    <script>
+        Polymer({
+            is: 'pathact-form',
+            behaviors: [JsoOpencgaManagerBehavior],
+            properties: {
+                files: {
+                    type: Array,
+                    observer: 'filesChanged'
+                },
+                selectedFile: {
+                    type: Object
+                },
+                pathwayList: {
+                    type: Array
+                },
+                selectedPathway: {
+                    type: Object
+                },
+                pathList: {
+                    type: Array
+                },
+                selectedPath: {
+                    type: Object
+                },
+                bioformats: {
+                    type: Array
+                },
+                projects: {
+                    type: Array,
+                    observer: 'projectsChanged'
+                },
+                centerLoading: {
+                    type: Boolean,
+                    value: false
+                },
+                _resultFileNameMap: {
+                    type: Object
+                },
+
+                geneList: {
+                    type: Array,
+                    value: function() {
+                        return []
+                    }
+                },
+                geneKoMap: {
+                    type: Object,
+                    value: function() {
+                        return {}
+                    }
+                },
+                koInputValue: {
+                    type: Number,
+                    value: 0.1
+                },
+                defaultKoValue: {
+                    type: Number,
+                    value: 0.1
+                },
+                lastSelectedNode: {
+                    type: Object,
+                }
+            },
+            _pwSortFn: function(a, b) {
+                if (a.haschanged && !b.haschanged) {
+                    return -1;
+                }
+                if (b.haschanged && !a.haschanged) {
+                    return 1;
+                }
+                if (a.sig && !b.sig) {
+                    return -1;
+                }
+                if (b.sig && !a.sig) {
+                    return 1;
+                }
+                return 0;
+            },
+            created: function() {
+                var me = this;
+                // this._openRemoteFile('./pathway_list.json', function(content) {
+                //     var pathwayList = [];
+                //     var pwMap = JSON.parse(content);
+                //     for (key in pwMap) {
+                //         pathwayList.push({
+                //             title: pwMap[key],
+                //             name: key
+                //         });
+                //     }
+                //     me.set('pathwayList', pathwayList);
+                // });
+            },
+            ready: function() {
+                var me = this;
+                this.set('selectPathwaysSet', this.pathwaysHumanSet);
+                this._initGeneSearch();
+
+                // this.$.networkViewer.addEventListener('hoververtex', function(e) {
+                // var x = e.detail.e.clientX;
+                // var y = e.detail.e.clientY;
+                // console.log(x + '-' + y);
+                // });
+                // this.$.networkViewer.addEventListener('hoverleave', function(e) {
+                //     console.log(e)
+                // });
+                // this.$.networkViewer.addEventListener('leftclickvertex', function(e) {
+                //     console.log(e);
+                // });
+                this.$.networkViewer.addEventListener('selectback', function(e) {
+                    me._hideKoControl();
+                });
+            },
+            projectsChanged: function() {
+                var me = this;
+                this._getFiles();
+                if (this._fileIntervalId == null) {
+                    this._fileIntervalId = setInterval(function() {
+                        me._getFiles();
+                    }, 5000);
+                }
+            },
+            filesChanged: function(neo, old) {
+                if (this.selectedFile == null && this.files != null) {
+                    var file;
+                    for (var i = 0; i < this.files.length; i++) {
+                        var f = this.files[i];
+                        if (f.attributes.pathact.status === 'READY') {
+                            file = f;
+                            break;
+                        }
+                    }
+                    if (file != null) {
+                        this._selectFile(file);
+                    }
+                }
+            },
+            isFileSelected: function(file, selectedFile) {
+                return file.id === selectedFile.id;
+            },
+            isPathwaySelected: function(pw, selectedPathway) {
+                return pw.id === selectedPathway.id;
+            },
+            isPathSelected: function(pw, selectedPath) {
+                return pw.id === selectedPath.id;
+            },
+            computePathStatus: function(status) {
+                return;
+            },
+            handleFileClick: function(e) {
+                var file = e.currentTarget.file;
+                this._selectFile(file);
+            },
+            _selectFile: function(file) {
+                var me = this;
+                if (this.centerLoading == false) {
+                    if (file.attributes.pathact.geneList != null) {
+                        this._loadGeneList(file.attributes.pathact.geneList);
+                    }
+                    if (file.attributes.pathact.status === "READY") {
+                        this.centerLoading = true;
+                        this.set('selectedFile', file);
+                        this._getJobBean(file.attributes.pathact.jobId, function(job) {
+                            var fileIds = job.input.concat(job.output);
+                            me._getFilesBeans(fileIds, function(files) {
+                                me._resultFileNameMap = {};
+                                for (var i = 0; i < files.length; i++) {
+                                    var f = files[i];
+                                    /*Nya careful!!!*/
+                                    if (f.path.indexOf('sifs4CellMaps_init') == -1) {
+                                        me._resultFileNameMap[f.name] = f;
+                                    }
+                                }
+                                me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
+                                    me._loadPathwayList(JSON.parse(content));
+                                    me.centerLoading = false;
+                                });
+                            });
+                        });
+                    } else {
+                        Utils.msg('Information', "File already being processed, please wait.");
+                    }
+                }
+            },
+            _loadPathwayList: function(o) {
+                console.log(o);
+                var pathwayList = [];
+                for (var i = 0; i < o.length; i++) {
+                    var pw = o[i];
+                    pathwayList.push(pw);
+                }
+                o.sort(this._pwSortFn);
+                this.set('pathwayList', o);
+                if (this.selectedPathway != null) {
+                    this._selectPathway(this.selectedPathway);
+                } else {
+                    this._selectPathway(o[0]);
+                }
+            },
+            handlePathwayClick: function(e) {
+                this._selectPathway(e.model.item);
+                this.set('pathList', e.model.item.paths);
+            },
+            handlePathClick: function(e) {
+                var attrId = e.model.item.id.split('__').pop();
+                this.$.networkViewer.$.nodeRender.applyVisualSet({
+                    attribute: attrId,
+                    displayProperty: 'opacity',
+                    type: "discrete",
+                    matches: {
+                        "1": "1",
+                        "0": "0.1"
+                    },
+                    points: [],
+                    parse: "string",
+                    enabled: true
+                });
+                this.$.networkViewer.$.edgeRender.applyVisualSet({
+                    attribute: attrId,
+                    displayProperty: 'opacity',
+                    type: "discrete",
+                    matches: {
+                        "1": "1",
+                        "0": "0.1"
+                    },
+                    points: [],
+                    parse: "string",
+                    enabled: true
+                });
+            },
+            _selectPathway: function(pw) {
+                var me = this;
+                var pwid = pw.id;
+                this.set('selectedPathway', pw);
+                pw.paths.sort(this._pwSortFn);
+                this.set('pathList', pw.paths);
+
+                console.log(pwid);
+                this.centerLoading = true;
+                this._getFileContent(this._resultFileNameMap[pwid + '.sif'].id, function(sifContent) {
+                    me._getFileContent(me._resultFileNameMap[pwid + '.natt'].id, function(nattContent) {
+                        me._getFileContent(me._resultFileNameMap[pwid + '.eatt'].id, function(eattContent) {
+                            me.$.networkViewer.loadSif(sifContent);
+                            me.$.networkViewer.loadNodeAttributes(nattContent, true);
+                            me.$.networkViewer.loadEdgeAttributes(eattContent, true);
+
+                            me.$.networkViewer.$.nodeRender.applyDirect('color', 'strokeColor');
+                            me.$.networkViewer.$.nodeRender.applyDirect('exp_col', 'color');
+                            me.$.networkViewer.$.nodeRender.applyDirect('shape', 'shape');
+                            me.$.networkViewer.$.nodeRender.applyDirect('width', 'size');
+                            me.$.networkViewer.$.nodeRender.applyDirect('labelSize', 'labelSize');
+
+                            me.$.networkViewer.$.edgeRender.applyDirect('color', 'color');
+                            me.$.networkViewer.$.edgeRender.applyDirect('head', 'shape');
+                            /*EXAMPLE*/
+                            // nodeRender.applyVisualSet({
+                            //     attribute: "drugs",
+                            //     displayProperty: "color",
+                            //     enabled: true,
+                            //     matches: matches,
+                            //     parse: "string",
+                            //     type: "categorical"
+                            // });
+
+                            me.$.networkViewer.setVertexDefaultPositionX('X', true, false);
+                            me.$.networkViewer.setVertexDefaultPositionY('Y', true, true);
+                            // me.$.networkViewer.setVertexDefaultLabelAttribute('genesList');
+                            me.$.networkViewer.setVertexDefaultLabelAttribute('label');
+
+                            me.centerLoading = false;
+                        });
+                    });
+                });
+            },
+
+            handleUpdateButton: function(e) {
+                if (this.centerLoading == false) {
+                    var me = this;
+                    var ko_file_lines = [];
+                    for (var i = 0; i < this.geneList.length; i++) {
+                        var geneKo = this.geneList[i];
+                        var names = geneKo.name.split(' ');
+                        var value = geneKo.value;
+                        for (var j = 0; j < names.length; j++) {
+                            var name = names[j];
+                            ko_file_lines.push(name + "\t" + value);
+                        }
+                    }
+                    ko_file_content = ko_file_lines.join('\n') + '\n';
+                    if (ko_file_content.trim() != "") {
+                        console.log(ko_file_content);
+                        var ko_file = new File([ko_file_content], "ko_file.txt");
+
+                        var formData = new FormData();
+                        formData.append('working_folder', this.selectedFile.attributes.pathact.workingFolderPath);
+                        formData.append('ko_file', ko_file, ko_file.name);
+
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', PATHACT_HOST + '/update', true);
+                        xhr.onload = function(e) {
+                            var response = JSON.parse(this.responseText);
+                            me.centerLoading = false;
+                            me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
+                                me._loadPathwayList(JSON.parse(content));
+                                me.centerLoading = false;
+                            });
+                        };
+                        this.centerLoading = true;
+                        xhr.send(formData);
+                    }
+                }
+            },
+
+            handleOpenInputChange: function(e) {
+                var file = e.currentTarget.files[0];
+            },
+            handleOpenFile: function(e) {
+                this.$.openInput.click();
+            },
+            handleOpenBrowser: function() {
+                this.$.browserPanel.show();
+            },
+            handleBrowserFileUploaded: function(e) {
+                var me = this;
+                this.$.browserPanel.hide();
+                var studyId = this.projects[0].studies[0].id;
+                var file = e.detail;
+                var attributes = file.attributes;
+                if (attributes.pathact == null) {
+                    var split = file.path.split('/');
+                    split.pop();
+                    var folderName = 'pathact-init-' + file.name;
+                    this._createFolder(studyId, split.join('/'), folderName, function(folder) {
+                        me._launchpathactInit(studyId, file, folder, function(job) {
+                            var split2 = job.params.exp_file.split('/');
+                            split2.pop();
+                            me._getFileBean(job.outDirId, function(jobOutDir) {
+                                me._updateFileAttributes(file.id, {
+                                    pathact: {
+                                        type: 'pathact',
+                                        jobId: job.id,
+                                        jobFolderId: job.outDirId,
+                                        folderId: folder.id,
+                                        workingFolderPath: split2.join('/') + '/' + folder.name + '/' + jobOutDir.name,
+                                        status: 'PREPROCESSING'
+                                    }
+                                }, function() {
+                                    me._getFiles();
+                                });
+                            });
+
+                        });
+                    });
+                }
+
+            },
+            handlekoControlChange: function(e) {
+                if (this.lastSelectedNode != null) {
+                    this._addGene(this.lastSelectedNode, e.currentTarget.value);
+                }
+            },
+            _addGene: function(name, value) {
+                if (this.geneKoMap[name] == null) {
+                    var insertPosition = this.push('geneList', {
+                        name: name,
+                        value: value
+                    }) - 1;
+                    this.geneKoMap[name] = insertPosition;
+                } else {
+                    var position = this.geneKoMap[name];
+                    var key = 'geneList.' + position + '.value';
+                    this.set(key, value);
+                }
+                this._saveGeneList();
+            },
+            handleRemoveGene: function(e) {
+                var name = e.detail;
+                this.splice('geneList', this.geneKoMap[name], 1);
+                var key = 'geneKoMap.' + name;
+                this.set(key, null);
+                this._rebuildGeneMap();
+                this._saveGeneList();
+            },
+            handleChangeGene: function() {
+                this._saveGeneList();
+            },
+            _rebuildGeneMap: function() {
+                for (var i = 0; i < this.geneList.length; i++) {
+                    var item = this.geneList[i];
+                    this.geneKoMap[item.name] = i;
+                }
+            },
+            _saveGeneList: function() {
+                var me = this;
+                if (this.selectedFile != null) {
+                    var attr = this.selectedFile.attributes.pathact;
+                    attr.geneList = this.geneList;
+                    this._updateFileAttributes(this.selectedFile.id, {
+                        pathact: attr
+                    }, function() {});
+                }
+            },
+            _loadGeneList: function(list) {
+                this.set('geneList', list);
+                this._rebuildGeneMap();
+            },
+            handleBrowserOkClick: function(e) {},
+            handleBrowserFileSelect: function(e) {
+                console.log(e.detail);
+            },
+            handleNetworkViewerVertexClick: function(e) {
+                var v = this.$.networkViewer.graph.getVertexById(e.detail.vertexId);
+                this.lastSelectedNode = v.attributes.label;
+
+                if (this.geneList[this.geneKoMap[this.lastSelectedNode]] != null) {
+                    this.koInputValue = this.geneList[this.geneKoMap[this.lastSelectedNode]].value;
+                } else {
+                    this.koInputValue = this.defaultKoValue;
+                }
+
+                var nvbcr = this.$.networkViewer.getBoundingClientRect();
+                this._showKoControl(e.detail.x + nvbcr.left + 15, e.detail.y + nvbcr.top + 15);
+            },
+            _showKoControl: function(x, y) {
+                this.$.koControl.style.display = "block";
+                this.$.koControl.style.top = y + 'px';
+                this.$.koControl.style.left = x + 'px';
+            },
+
+            _hideKoControl: function() {
+                this.$.koControl.style.display = "none";
+            },
+            _launchpathactInit: function(studyId, file, workingFolder, cb) {
+                var query = {
+                    sid: Cookies("bioinfo_sid"),
+                    toolId: 'pathways',
+                    execution: 'pathact-init',
+                    name: file.name,
+                    description: '',
+                    studyId: studyId,
+                    /**/
+                    exp_file: file.id,
+                    working_folder: workingFolder.id
+                };
+                OpencgaManager.jobs.create({
+                    query: query,
+                    request: {
+                        success: function(response) {
+                            var job = response.response[0].result[0];
+                            cb(job);
+                        },
+                        error: function() {}
+                    }
+                });
+            },
+            _getFiles: function() {
+                var me = this;
+                var studyId = this.projects[0].studies[0].id;
+                OpencgaManager.files.search({
+                    query: {
+                        sid: Cookies('bioinfo_sid'),
+                        studyId: studyId,
+                        'attributes.pathact.type': 'pathact',
+                        'status': 'READY'
+                    },
+                    request: {
+                        success: function(response) {
+                            var files = response.response[0].result;
+                            files.sort(function(a, b) {
+                                return b.modificationDate.localeCompare(a.modificationDate);
+                            });
+                            me.set('files', response.response[0].result);
+                        },
+                        error: function() {}
+                    }
+                });
+            },
+            _openRemoteFile: function(filepath, cb) {
+                var me = this;
+                var request = new XMLHttpRequest();
+                request.onload = function() {
+                    cb(this.responseText);
+                };
+                request.onerror = function() {
+                    console.log('Error loading pathway_list.json');
+                };
+                request.open("GET", filepath);
+                request.send();
+
+            },
+
+            handleGeneSearch: function(e) {
+                var name = e.detail;
+                if (this.geneKoMap[name] == null) {
+                    this._addGene(e.detail, this.defaultKoValue);
+                }
+            },
+            _initGeneSearch: function() {
+                var search = function(query, cb) {
+                    CellBaseManager.get({
+                        species: 'hsapiens',
+                        category: 'feature',
+                        subCategory: 'id',
+                        query: query.toUpperCase(),
+                        resource: 'starts_with',
+                        params: {
+                            limit: 10
+                        },
+                        async: true,
+                        success: function(data, textStatus, jqXHR) {
+                            if (data.response != null && data.response.length > 0 && data.response[0].result != null) {
+                                cb(data.response[0].result);
+                            } else {
+                                cb([]);
+                            }
+                        },
+                        error: function() {
+                            cb([]);
+                        }
+                    });
+                };
+                var parse = function(results) {
+                    var items = [];
+                    for (var i = 0; i < results.length; i++) {
+                        var r = results[i];
+                        items.push(r.name);
+                    }
+                    return items;
+                };
+                this.$.geneSearch.setSearchFunction(search);
+                this.$.geneSearch.setParseFunction(parse);
+                // this.$.knockoutGenesSearch.setSearchFunction(search);
+                // this.$.knockoutGenesSearch.setParseFunction(parse);
+            },
+
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+            /************OLD*/
+
+            handleKnockoutSearch: function(e) {
+                if (this.knockoutGeneText != '') {
+                    this.knockoutGeneText += '\n';
+                }
+                this.knockoutGeneText += e.detail;
+            },
+            handleRaiseSearch: function(e) {
+                if (this.raiseGeneText != '') {
+                    this.raiseGeneText += '\n';
+                }
+                this.raiseGeneText += e.detail;
+            },
+
+            checkExpFile: function(e) {
+                var file = e.currentTarget.selectedFile;
+                var bool = (file != null && Utils.endsWith(file.name, ".txt") && file.bioformat == "IDLIST");
+                if (bool) {
+                    this.txtFileMessage = '';
+                } else {
+                    this.txtFileMessage = 'This file is not TXT';
+                }
+                return bool;
+            },
+
+            runExample: function() {
+
+                OpencgaManager.jobs.create({
+                    query: {
+
+                        execution: this.execution,
+                        toolId: this.toolName,
+                        name: "Pathiways example",
+                        description: this.descrip,
+
+                        species: 'hsapiens',
+                        platform: 'HGU133Plus2',
+                        expdesigntype: 'categorical',
+                        control: 'CONTROL',
+                        disease: 'CRC',
+                        summ: 'per90',
+                        test: 'multilevel',
+                        pathways: "hsa03320,hsa04012,hsa04020,hsa04060,hsa04080,hsa04115,hsa04150,hsa04210,hsa04310,hsa04330,hsa04340,hsa04370,hsa04512,hsa04514,hsa04530,hsa04540,hsa04612,hsa04620,hsa04630,hsa04660,hsa04662,hsa04664,hsa04910,hsa04912,hsa04916,hsa04920",
+
+                        normmatrix: 'example_GSE4107.txt',
+                        expdesign: 'example_ED_GSE4107.txt',
+
+                    },
+
+                    request: {
+                        //method: 'POST',
+                        success: function(response) {
+                            if (response.response[0].errorMsg === '' || response.response[0].errorMsg == null) {
+                                var jobId = response.response[0].result[0].id;
+                                me.selectedOption = "jobLaunched"
+                            } else {
+                                me.message = response.response[0].errorMsg;
+                            }
+                            me.selectedStudy = null;
+                        },
+                        error: function() {
+                            me.message = 'Server error, try again later.';
+                        }
+                    }
+                });
+
+            },
+            _setError: function(id, msg) {
+                this.$[id + 'Error'].innerHTML = msg;
+                this.errorMessage = "There are errors in the form. Correct them before launching the job.";
+            },
+            _clearError: function(id) {
+                this.$[id + 'Error'].innerHTML = '';
+                this.errorMessage = '';
+            },
+            _clean: function() {
+                this.errorMessage = '';
+                this.$.exp_file.reset();
+                this.$.design_file.reset();
+                this.$.output_folder.reset();
+            },
+            launchJob: function(e) {
+                var me = this;
+
+                var query = {
+                    sid: Cookies("bioinfo_sid"),
+                    toolId: this.toolId,
+                    execution: this.execution,
+                    name: this.$.jobName.value,
+                    description: this.$.jobDescription.value
+                };
+
+                if (this.$.output_folder.selectedFile == null) {
+                    this._setError('output_folder', "No folder selected");
+                } else {
+                    this._clearError('output_folder');
+                    query['output_folder'] = this.$.output_folder.selectedFile.id;
+                    query['studyId'] = this.$.output_folder.selectedStudy.id;
+                }
+
+                if (this.$.exp_file.selectedFile == null) {
+                    this._setError('exp_file', 'No expression matrix file selected');
+                } else {
+                    this._clearError('exp_file');
+                    query['exp_file'] = this.$.exp_file.selectedFile.id;
+                }
+
+                if (this.$.form.elements['go'].checked) {
+                    query['go'] = '';
+                }
+                if (this.$.form.elements['uniprot'].checked) {
+                    query['uniprot'] = '';
+                }
+                if (this.$.form.elements['decompose'].checked) {
+                    query['decompose'] = '';
+                }
+                if (this.$.form.elements['difexp'].checked) {
+                    query['difexp'] = '';
+                }
+
+                // query['species'] = this.species;
+
+                // if (this.species == 'hsa') {
+                //     s = this.$.human.querySelectorAll('input[type=radio]');
+                //     for (var i = 0; i < s.length; i++) {
+                //         if (s[i].checked) {
+                //             query['platform'] = s[i].value;
+                //         }
+                //     }
+                // }
+                // if (this.species == 'mmu') {
+                //     s = this.$.mouse.querySelectorAll('input[type=radio]');
+                //     for (var i = 0; i < s.length; i++) {
+                //         if (s[i].checked) {
+                //             query['platform'] = s[i].value;
+                //         }
+                //     }
+                // }
+
+                var pathways = [];
+                var els = this.$.pathwaysContent.querySelectorAll('input[type=checkbox]');
+                for (var i = 0; i < els.length; i++) {
+                    var pathway = els[i];
+                    if (pathway.checked) {
+                        // pathways.push('hsa' + pathway.value);
+                        pathways.push(pathway.value);
+                    }
+                }
+                if (pathways.length < 1) {
+                    this._setError('pathways', 'Please select at least one Pathway');
+                } else {
+                    this._clearError('pathways');
+                    query['pathways'] = pathways;
+                }
+
+                if (this.errorMessage === '' && this.$.form.checkValidity()) {
+                    console.log(this.$.form.checkValidity())
+                    OpencgaManager.jobs.create({
+                        query: query,
+                        request: {
+                            //method: 'POST',
+                            success: function(response) {
+                                if (response.response[0].errorMsg === '' || response.response[0].errorMsg == null) {
+                                    var job = response.response[0].result[0];
+                                    me.selectedOption = "jobLaunched"
+                                    console.log(job);
+                                    // me._clean();
+                                    me.fire('job-launched');
+                                    //                                    me.message = job.commandLine;
+                                } else {
+                                    me.message = response.response[0].errorMsg;
+                                }
+                            },
+                            error: function() {
+                                me.message = 'Server error, try again later.';
+                            }
+                        }
+                    });
+                }
+            },
+
+            handleSelectPW: function(e) {
+                console.log(e.currentTarget.checked)
+                if (e.currentTarget.checked === true) {
+                    this.selectAllPw();
+                } else {
+                    this.deselectAllPw();
+                }
+            },
+            selectAllPw: function(e) {
+                var els = this.$.pathwaysContent.querySelectorAll('input[type=checkbox]');
+                for (var i = 0; i < els.length; i++) {
+                    els[i].checked = true;
+                }
+            },
+
+            deselectAllPw: function(e) {
+                var els = this.$.pathwaysContent.querySelectorAll('input[type=checkbox]');
+                for (var i = 0; i < els.length; i++) {
+                    els[i].checked = false;
+                }
+            }
+        });
+    </script>
+</dom-module>
+
+<dom-module id="pathact-gene-option">
+    <style>
+        :host {
+            display: block;
+            position: relative;
+            box-sizing: border-box;
+            word-break: break-all;
+        }
+
+        #main {
+            margin-top: 3px;
+            margin-left: 6px;
+            margin-right: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .name {
+            margin-right: 3px;
+        }
+
+        .value {
+            width: 80px;
+        }
+
+        .delete {
+            margin-left: 3px;
+            color: var(--secondary-text-color);
+        }
+
+        .delete:hover {
+            color: #880000 !important;
+        }
+    </style>
+    <template>
+        <div id="main" class="horizontal layout center">
+            <div class="name flex">{{name}}</div>
+            <div class="value">
+                <input class="jso" type="number" max="1" min="0" step="0.1" value="{{value::input}}" />
+            </div>
+            <div class="delete jso-btn" on-click="handleRemove">
+                <i class="fa fa-times"></i>
+            </div>
+        </div>
+    </template>
+</dom-module>
+<script>
+    Polymer({
+        is: 'pathact-gene-option',
+        properties: {
+            name: {
+                type: String,
+                reflectToAttribute: true,
+                notify: true
+            },
+            value: {
+                type: String,
+                reflectToAttribute: true,
+                notify: true,
+                observer: 'valueChanged'
+            },
+        },
+        handleRemove: function() {
+            this.fire('remove', this.name);
+        },
+        valueChanged: function() {
+            this.fire('changed', this.value);
+        }
+    });
+</script>
+
+<dom-module id="pathact-file-option">
+    <style>
+        :host {
+            display: block;
+            position: relative;
+            box-sizing: border-box;
+            word-break: break-all;
+            cursor: pointer;
+        }
+
+        #main {
+            border: 1px solid var(--divider-color);
+            margin-bottom: 2px;
+        }
+
+        :host[data-checked] > #main {
+            border-color: var(--accent-color);
+            background-color: var(--hover-color);
+        }
+
+        #main:hover {
+            margin-bottom: 2px;
+            border-color: var(--accent-color);
+            background-color: var(--hover-color);
+        }
+
+        .name {
+            margin-right: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .icon {
+            padding: 0 5px 0 2px;
+        }
+
+        .action {
+            width: 80px;
+        }
+
+        .date {
+            color: var(--secondary-text-color);
+            font-size: 11px;
+        }
+
+        .ready {
+            color: #2D7481;
+        }
+
+        .preprocessing {
+            color: #ff8100;
+        }
+
+        .delete {
+            color: var(--secondary-text-color);
+        }
+
+        .delete:hover {
+            color: #880000 !important;
+        }
+    </style>
+    <template>
+        <div id="main" title$="{{file.name}}">
+            <div class="horizontal layout center">
+                <div class="icon"><i class="fa fa-file-o"></i></div>
+                <div class="name flex">{{file.name}}</div>
+            </div>
+            <div class="horizontal layout center ready">
+                <div class="icon"><i class$="{{computeStatusIcon(file.attributes.pathact.status)}}"></i></div>
+                <div class="date flex">{{computeDate(file)}}</div>
+                <div hidden$="{{computeDeleteHidden(file.attributes.pathact.status)}}" class="icon delete" on-click="handleDeleteFile"><i class="fa fa-trash-o"></i></div>
+            </div>
+        </div>
+    </template>
+</dom-module>
+<script>
+    Polymer({
+        is: 'pathact-file-option',
+        behaviors: [JsoOpencgaManagerBehavior],
+        properties: {
+            file: {
+                type: Object,
+                observer: 'fileChanged'
+            },
+            job: {
+                type: Object
+            }
+        },
+        computeStatusIcon: function(status) {
+            if (status == null) {
+                return '';
+            } else if (status === 'PREPROCESSING') {
+                return 'fa fa-refresh fa-spin preprocessing';
+            } else if (status === 'READY') {
+                return 'fa fa-check ready';
+            }
+        },
+        computeDate: function(item) {
+            return Utils.parseDate(item.modificationDate);
+        },
+        computeDeleteHidden: function(status) {
+            return status === 'PREPROCESSING';
+        },
+        handleDeleteFile: function(e) {
+            e.stopPropagation();
+            var me = this;
+            if (this.file.attributes.pathact.status === 'READY') {
+                if (confirm('The file will be deleted, are you sure?')) {
+                    var fileId = this.file.id;
+                    var jobId = this.file.attributes.pathact.jobId;
+                    var folderId = this.file.attributes.pathact.folderId;
+                    var jobFolderId = this.file.attributes.pathact.jobFolderId;
+                    me._deleteFile(fileId, function(r2) {
+                        console.log(r2);
+                    });
+                    me._deleteJob(jobId, function(r) {
+                        console.log(r);
+                    }, false);
+                    me._deleteFile(jobFolderId, function(r2) {
+                        console.log(r2);
+                    });
+                }
+            }
+        },
+        fileChanged: function(neo, old) {
+            var me = this;
+            if (neo.attributes.pathact.status != 'READY') {
+                // console.log('pathact getting job info...');
+                this._getJobBean(neo.attributes.pathact.jobId, function(job) {
+                    me.set('job', job);
+                    if (job.status == 'READY') {
+                        neo.attributes.pathact.status = job.status;
+                        me._updateFileAttributes(neo.id, {
+                            pathact: neo.attributes.pathact
+                        }, function() {});
+                    }
+                });
+            }
+        }
+    });
+</script>

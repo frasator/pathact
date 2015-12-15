@@ -19,4 +19,6 @@ OPENCGA_VERSION = "v1";
 OPENCGA_HOST = "http://ws1.babelomics.org/opencga-0.7";
 OPENCGA_LOG = true;
 
+PATHACT_HOST = "http://ws.babelomics.org/pathact";
+
 STUDY_NAME = "CHECK_THIS";

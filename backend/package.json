@@ -1,0 +1,10 @@
+{
+  "name": "pathiko-server",
+  "version": "1.0.0",
+  "dependencies": {
+    "cors": "^2.7.1",
+    "express": "^4.13.3",
+    "mktemp": "^0.4.0",
+    "multer": "^1.1.0"
+  }
+}
