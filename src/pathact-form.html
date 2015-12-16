@@ -63,8 +63,7 @@
 
         #geneList,
         #fileList,
-        #pathwayList,
-        #pathList {
+        .plist {
             display: block;
             position: relative;
             box-sizing: border-box;
@@ -73,55 +72,47 @@
             background-color: var(--light-primary-color);
         }
 
-        #pathwayList > div,
-        #pathList > div {
+        .plist > div {
             cursor: pointer;
             padding: 1px 4px;
             border: 1px solid transparent;
             color: #555;
         }
 
-        #pathwayList > div:hover,
-        #pathList > div:hover {
+        .plist > div:hover {
             background-color: var(--hover-color);
             border-color: var(--accent-color);
         }
 
-        #pathwayList > div[data-checked],
-        #pathList > div[data-checked] {
+        .plist > div[data-checked] {
             background-color: var(--accent-color);
         }
 
-        #pathwayList > div[data-haschanged],
-        #pathList > div[data-haschanged] {
+        .plist > div > span[data-haschanged] {
             color: #000;
             font-weight: bold;
         }
 
-        #pathwayList > div[data-sig],
-        #pathList > div[data-sig] {
-            color: #000;
-            font-weight: bold;
-        }
-
-        #pathwayList > div > .sig[data-sig]:before {
-            font-family: FontAwesome;
-            content: '\f12a';
-            color: #a500ff;
-            margin-right: 3px;
-        }
-
-        #pathList > div[data-status="UP"]:before {
+        .plist > div > span[data-down]:before,
+        .plist > div > span[data-up]:before {
             font-family: FontAwesome;
             margin-right: 3px;
+            color: #aaa;
+        }
+
+        .plist > div > span[data-up]:before {
             content: '\f176';
+        }
+
+        .plist > div > span[data-down]:before {
+            content: '\f175';
+        }
+
+        .plist > div > span[data-upsig]:before {
             color: #cc0000;
         }
 
-        #pathList > div[data-status="DOWN"]:before {
-            font-family: FontAwesome;
-            margin-right: 3px;
-            content: '\f175';
+        .plist > div > span[data-downsig]:before {
             color: #005aa3;
         }
 
@@ -148,49 +139,29 @@
             width: 100%;
             margin-bottom: 3px;
         }
-        /**/
 
-        #title {
-            text-align: center;
-            font-size: 20px;
-            color: #666;
-        }
-
-        .coment {
-            color: #666;
-        }
-
-        .conditionTextArea {
-            box-sizing: border-box;
-            width: 25%;
-            height: 25px;
-            resize: none;
-        }
-
-        .errmsg {
-            color: #8b0000;
-            margin-bottom: 5px;
-            font-style: italic;
-        }
-
-        #pathwaysContent {
-            height: 300px;
-        }
-
-        textarea {
-            resize: none;
+        #loading {
+            position: absolute;
             width: 100%;
-            height: 150px;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.60);
+            font-size: 18px;
         }
 
-        jso-select {
-            width: 200px;
+        #loading > div {
+            box-shadow: 2px 2px 3px 0px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            background-color: #d75a00;
+            /*background-color: var(--accent-color);*/
+            color: #fff;
+            padding: 10px 40px;
         }
     </style>
     <template>
         <form id="form" class="horizontal layout">
             <div id="left" class="vertical layout">
                 <label class="jso">Expression matrix files:</label>
+                <div id="selectButton" class="jso-btn jso-btn-shdw" on-click="handleLoadExample"> <i class="fa fa-magic"></i>&nbsp;Load example file</div>
                 <div id="selectButton" class="jso-btn jso-btn-shdw" on-click="handleOpenBrowser"> <i class="fa fa-cloud-upload"></i>&nbsp;Load file... </div>
                 <div id="fileList" style="height:200px;">
                     <template is="dom-repeat" items="{{files}}">
@@ -220,183 +191,48 @@
             <div id="center" class="flex">
                 <div class="horizontal layout center">
                     <label class="jso flex">Pathway viewer:</label>
-                    <div hidden$="{{!centerLoading}}" style="margin-right:10px;"><i class="fa fa-circle-o-notch fa-spin"></i> Loading...</div>
                 </div>
                 <jso-network-viewer id="networkViewer" style="height:calc(100% - 22px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar on-leftclickvertex="handleNetworkViewerVertexClick"></jso-network-viewer>
             </div>
             <div id="right">
                 <label class="jso">Pathway list:</label>
-                <div id="pathwayList" style="height:calc(50% - 23px);">
+                <div id="pathwayList" class="plist" style="height:calc(50% - 23px);">
                     <template is="dom-repeat" items="{{pathwayList}}">
-                        <div on-click="handlePathwayClick" data-checked$="{{isPathwaySelected(item, selectedPathway)}}" data-sig$="{{item.sig}}" data-haschanged$="{{item.haschanged}}">
-                            <span class="sig" data-sig$="{{item.sig}}"></span>
-                            <span class="hasch" data-haschanged$="{{item.haschanged}}"></span>{{item.name}}</div>
+                        <div on-click="handlePathwayClick" data-checked$="{{isPathwaySelected(item, selectedPathway)}}">
+                            <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}"></span>
+                            <span data-down$="{{item.down}}" data-downsig$="{{item.downsig}}"></span>
+                            <span data-haschanged$="{{item.haschanged}}">{{item.name}}</span>
+                        </div>
                     </template>
                 </div>
                 <label class="jso" style="margin-top:5px;">Subpath list:</label>
-                <div id="pathList" style="height:calc(50% - 23px);">
+                <div id="pathList" class="plist" style="height:calc(50% - 23px);">
                     <template is="dom-repeat" items="{{pathList}}">
-                        <div on-click="handlePathClick" data-checked$="{{isPathSelected(item, selectedPath)}}" data-haschanged$="{{item.haschanged}}" data-status$="{{item.status}}">{{item.name}}</div>
+                        <div on-click="handlePathClick" data-checked$="{{isPathSelected(item, selectedPath)}}">
+                            <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}"></span>
+                            <span data-down$="{{item.down}}" data-downsig$="{{item.downsig}}"></span>
+                            <span data-haschanged$="{{item.haschanged}}">{{item.shortname}}</span>
                     </template>
-                </div>
-            </div>
-
-            <div id="koControl">
-                <label class="jso">Knockout value:</label>
-                <input class="jso" type="number" min="0" max="1" step="0.1" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
-            </div>
-
-            <jso-panel hidden fixed modal closable id="browserPanel">
-                <div class="header">
-                    Select expression matrix file...
-                </div>
-                <jso-opencga-browser enable-select-ok id="browser" class="container flex" mode="file" on-fileselect="handleBrowserFileSelect" on-ok-click="handleBrowserOkClick" on-file-uploaded="handleBrowserFileUploaded" bioformats="{{bioformats}}" projects="{{projects}}"></jso-opencga-browser>
-            </jso-panel>
-
-            <!-- <div class="horizontal layout center-justified">
-                <div class="jso-btn jso-btn-shdw"><i class="fa fa-rocket"></i> &nbsp; Run example</div>
-            </div>
-            <br> -->
-
-            <!--
-            <div class="jso-formbox">
-                <div class="jso-formtitle">
-                    Species
-                </div>
-                <div class="jso-formcontent ">
-                    <label class="jso-control">
-                        <input type="radio" name="species" checked="true" on-click="selectHumanSpecie">
-                        <span>Human (Homo sapiens)</span>
-                    </label>
-                </div>
-            </div>
-            <div class="jso-formbox">
-                <div class="jso-formtitle">
-                    Input data
-                </div>
-                <div class="jso-formcontent">
-                    <div>Expression matrix file: &nbsp;
-                        <jso-opencga-file-origin id="exp_file" selectedStudy="{{selectedStudy}}" selection-mode="file" bioformats="{{bioformats}}" projects="{{projects}}" on-ok-click="checkExpFile">
-                        </jso-opencga-file-origin>
-                        <span id="exp_fileError" class="errmsg"></span>
                     </div>
                 </div>
-            </div>
 
-            <div class="horizontal layout center">
-                <div class="jso-formbox flex" style="margin-right:5px;height:200px;">
-                    <div class="jso-formtitle horizontal layout">
-                        <div class="flex">Knockout genes</div>
-                        <jso-search id="knockoutGenesSearch" placeholder="Search genes..." on-select="handleKnockoutSearch" style="margin: 0 5px 0 20px;"></jso-search>
+                <div id="koControl">
+                    <label class="jso">Knockout value:</label>
+                    <input class="jso" type="number" min="0" max="1" step="0.1" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
+                </div>
+
+                <jso-panel hidden fixed modal closable id="browserPanel">
+                    <div class="header">
+                        Select expression matrix file...
                     </div>
-                    <div class="jso-formcontent">
-                        <textarea class="jso" value="{{knockoutGeneText::input}}"></textarea>
-                    </div>
-                </div>
-                <div class="jso-formbox flex" style="margin-left:5px;height:200px;">
-                    <div class="jso-formtitle horizontal layout">
-                        <div class="flex">Over expressed genes</div>
-                        <jso-search id="raiseGenesSearch" placeholder="Search genes..." on-select="handleRaiseSearch" style="margin: 0 5px 0 20px;"></jso-search>
-                    </div>
-                    <div class="jso-formcontent">
-                        <textarea class="jso" value="{{raiseGeneText::input}}"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div class="jso-formbox" style="height:200px;">
-                <div class="jso-formtitle horizontal layout">
-                    <div class="flex">Drugs</div>
-                    <jso-search id="" placeholder="Search drugs..." on-select="" style="margin: 0 5px 0 20px;"></jso-search>
-                </div>
-                <div class="jso-formcontent horizontal layout center">
-                    <textarea class="jso flex" value=""></textarea>
-                    <div class="jso flex" style="margin-left:10px;">
-                        <label class="jso">Drug target genes:</label>
-                        <div style="height:125px;paddin:5px;border:1px solid lightgray">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="jso-formbox">
-                <div class="jso-formtitle">
-                    Parameters
-                </div>
-                <div class="jso-formcontent">
-                    <label class="jso-control">
-                        <input type="checkbox" name="decompose">
-                        <span>Decompose paths</span>
-                    </label>
-                    <label class="jso-control">
-                        <input type="checkbox" name="difexp">
-                        <span>Color nodes by differential expression</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="jso-formbox">
-                <div class="jso-formtitle">
-                    Function level analysis
-                </div>
-                <div class="jso-formcontent">
-                    <label class="jso-control">
-                        <input type="checkbox" name="go">
-                        <span>Gene ontology</span>
-                    </label>
-                    <label class="jso-control">
-                        <input type="checkbox" name="uniprot">
-                        <span>Uniprot keywords</span>
-                    </label>
-                </div>
-            </div>
-
-
-            <div class="jso-formbox">
-                <div class="jso-formtitle horizontal layout center">
-                    <div class="flex">Pathways</div>
-                    <label class="jso-control">
-                        <input type="checkbox" checked on-change="handleSelectPW">
-                        <span style="font-size:13px;">All</span>
-                    </label>
-                </div>
-                <span id="pathwaysError" class="errmsg"></span>
-                <div id="pathwaysContent" class="jso-formcontent" style="overflow-y:scroll;">
-                    <template is="dom-repeat" items="{{pathwayList}}">
-                        <label class="jso-control">
-                            <input type="checkbox" value="{{item.value}}" checked$="{{item.selected}}">
-                            <span>{{item.name}}</span>
-                        </label>
-                    </template>
-                </div>
-            </div>
-
-            <div class="jso-formbox">
-                <div class="jso-formtitle">
-                    Job information
-                </div>
-                <div class="jso-formcontent">
-                    <div>Output folder: &nbsp;
-                        <jso-opencga-file-origin id="output_folder" selection-mode="folder" bioformats="{{bioformats}}" projects="{{projects}}">
-                        </jso-opencga-file-origin>
-                        <span id="output_folderError" class="errmsg"></span>
-                    </div>
-                    <br>
-                    <div class="coment">Job name</div>
-                    <input type="text" id="jobName" class="jso" style="width:200px;" value="Pathways job" />
-                    <div class="coment">Description</div>
-                    <textarea id="jobDescription" class="jso" style="width:200px;"></textarea>
-                </div>
-            </div>
-
-            <span class="errmsg">{{errorMessage}}</span>
-            <div class="horizontal layout center-justified">
-                <div class="jso-btn jso-btn-shdw jso-btn-big" on-click="launchJob"><i class="fa fa-rocket"></i> &nbsp; Launch Job</div>
-            </div>
-            <br> -->
+                    <jso-opencga-browser enable-select-ok id="browser" class="container flex" mode="file" on-fileselect="handleBrowserFileSelect" on-ok-click="handleBrowserOkClick" on-file-uploaded="handleBrowserFileUploaded" bioformats="{{bioformats}}" projects="{{projects}}"></jso-opencga-browser>
+                </jso-panel>
         </form>
-
-
+        <div id="loading" hidden$="{{!loading}}" class="horizontal layout center-justified jso-unselectable">
+            <div class="self-center">
+                <i class="fa fa-circle-o-notch fa-spin"></i> Loading...
+            </div>
+        </div>
     </template>
 
     <script>
@@ -430,7 +266,7 @@
                     type: Array,
                     observer: 'projectsChanged'
                 },
-                centerLoading: {
+                loading: {
                     type: Boolean,
                     value: false
                 },
@@ -511,6 +347,19 @@
                     me._hideKoControl();
                 });
             },
+            clean: function() {
+                this.set('fileList', null);
+                this.set('pathList', null);
+                this.set('pathwayList', null);
+                this.set('geneList', []);
+                this.set('geneKoMap', {});
+                this.set('selectedFile', null);
+                this.set('selectedPathway', null);
+                this.set('selectedPath', null);
+                this._fileIntervalId = null;
+                this.$.networkViewer.startOver();
+                this.loading = false;
+            },
             projectsChanged: function() {
                 var me = this;
                 this._getFiles();
@@ -536,16 +385,13 @@
                 }
             },
             isFileSelected: function(file, selectedFile) {
-                return file.id === selectedFile.id;
+                return selectedFile != null && file.id === selectedFile.id;
             },
             isPathwaySelected: function(pw, selectedPathway) {
-                return pw.id === selectedPathway.id;
+                return selectedPathway != null && pw.id === selectedPathway.id;
             },
-            isPathSelected: function(pw, selectedPath) {
-                return pw.id === selectedPath.id;
-            },
-            computePathStatus: function(status) {
-                return;
+            isPathSelected: function(p, selectedPath) {
+                return selectedPath != null && p.id === selectedPath.id;
             },
             handleFileClick: function(e) {
                 var file = e.currentTarget.file;
@@ -553,12 +399,12 @@
             },
             _selectFile: function(file) {
                 var me = this;
-                if (this.centerLoading == false) {
+                if (this.loading == false) {
                     if (file.attributes.pathact.geneList != null) {
                         this._loadGeneList(file.attributes.pathact.geneList);
                     }
                     if (file.attributes.pathact.status === "READY") {
-                        this.centerLoading = true;
+                        this.loading = true;
                         this.set('selectedFile', file);
                         this._getJobBean(file.attributes.pathact.jobId, function(job) {
                             var fileIds = job.input.concat(job.output);
@@ -573,7 +419,7 @@
                                 }
                                 me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
                                     me._loadPathwayList(JSON.parse(content));
-                                    me.centerLoading = false;
+                                    me.loading = false;
                                 });
                             });
                         });
@@ -598,35 +444,46 @@
                 }
             },
             handlePathwayClick: function(e) {
+                console.log(e.model.item);
                 this._selectPathway(e.model.item);
                 this.set('pathList', e.model.item.paths);
             },
             handlePathClick: function(e) {
-                var attrId = e.model.item.id.split('__').pop();
-                this.$.networkViewer.$.nodeRender.applyVisualSet({
-                    attribute: attrId,
-                    displayProperty: 'opacity',
-                    type: "discrete",
-                    matches: {
-                        "1": "1",
-                        "0": "0.1"
-                    },
-                    points: [],
-                    parse: "string",
-                    enabled: true
-                });
-                this.$.networkViewer.$.edgeRender.applyVisualSet({
-                    attribute: attrId,
-                    displayProperty: 'opacity',
-                    type: "discrete",
-                    matches: {
-                        "1": "1",
-                        "0": "0.1"
-                    },
-                    points: [],
-                    parse: "string",
-                    enabled: true
-                });
+                var path = e.model.item;
+                console.log(path);
+                if (this.selectedPath != null && path.id === this.selectedPath.id) {
+                    this.set('selectedPath', null);
+                    this.$.networkViewer.$.nodeRender.removeVisualSet('opacity');
+                    this.$.networkViewer.$.edgeRender.removeVisualSet('opacity');
+                } else {
+                    this.set('selectedPath', path);
+                    var attrId = e.model.item.id.split('__').pop();
+                    this.$.networkViewer.$.nodeRender.applyVisualSet({
+                        attribute: attrId,
+                        displayProperty: 'opacity',
+                        type: "discrete",
+                        matches: {
+                            "1": "1",
+                            "0": "0.1"
+                        },
+                        points: [],
+                        parse: "string",
+                        enabled: true
+                    });
+                    this.$.networkViewer.$.edgeRender.applyVisualSet({
+                        attribute: attrId,
+                        displayProperty: 'opacity',
+                        type: "discrete",
+                        matches: {
+                            "1": "1",
+                            "0": "0.1"
+                        },
+                        points: [],
+                        parse: "string",
+                        enabled: true
+                    });
+                }
+
             },
             _selectPathway: function(pw) {
                 var me = this;
@@ -636,7 +493,7 @@
                 this.set('pathList', pw.paths);
 
                 console.log(pwid);
-                this.centerLoading = true;
+                this.loading = true;
                 this._getFileContent(this._resultFileNameMap[pwid + '.sif'].id, function(sifContent) {
                     me._getFileContent(me._resultFileNameMap[pwid + '.natt'].id, function(nattContent) {
                         me._getFileContent(me._resultFileNameMap[pwid + '.eatt'].id, function(eattContent) {
@@ -644,7 +501,7 @@
                             me.$.networkViewer.loadNodeAttributes(nattContent, true);
                             me.$.networkViewer.loadEdgeAttributes(eattContent, true);
 
-                            me.$.networkViewer.$.nodeRender.applyDirect('color', 'strokeColor');
+                            // me.$.networkViewer.$.nodeRender.applyDirect('color', 'strokeColor');
                             me.$.networkViewer.$.nodeRender.applyDirect('exp_col', 'color');
                             me.$.networkViewer.$.nodeRender.applyDirect('shape', 'shape');
                             me.$.networkViewer.$.nodeRender.applyDirect('width', 'size');
@@ -667,14 +524,25 @@
                             // me.$.networkViewer.setVertexDefaultLabelAttribute('genesList');
                             me.$.networkViewer.setVertexDefaultLabelAttribute('label');
 
-                            me.centerLoading = false;
+                            for (var i = 0; i < me.geneList.length; i++) {
+                                var name = me.geneList[i].name;
+                                for (var j = 0; j < me.$.networkViewer.vertices.length; j++) {
+                                    var v = me.$.networkViewer.vertices[j];
+                                    if (v.attributes['label'].indexOf(name) != -1) {
+                                        v.renderer.set('strokeSize', 6);
+                                        v.renderer.set('strokeColor', '#ee6908');
+                                    }
+                                }
+                            }
+
+                            me.loading = false;
                         });
                     });
                 });
             },
 
             handleUpdateButton: function(e) {
-                if (this.centerLoading == false) {
+                if (this.loading == false) {
                     var me = this;
                     var ko_file_lines = [];
                     for (var i = 0; i < this.geneList.length; i++) {
@@ -699,13 +567,13 @@
                         xhr.open('POST', PATHACT_HOST + '/update', true);
                         xhr.onload = function(e) {
                             var response = JSON.parse(this.responseText);
-                            me.centerLoading = false;
+                            me.loading = false;
                             me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
                                 me._loadPathwayList(JSON.parse(content));
-                                me.centerLoading = false;
+                                me.loading = false;
                             });
                         };
-                        this.centerLoading = true;
+                        this.loading = true;
                         xhr.send(formData);
                     }
                 }
@@ -720,11 +588,27 @@
             handleOpenBrowser: function() {
                 this.$.browserPanel.show();
             },
+            handleLoadExample: function() {
+                var me = this;
+                var studyId = this.projects[0].studies[0].id;
+                this._openRemoteFile('./pathact_example.txt', function(content) {
+                    debugger
+                    me._uploadFile(studyId, '', 'pathact_example.txt', content, 'DATAMATRIX_EXPRESSION', function(file) {
+                        debugger
+                        if (file != null) {
+
+                        }
+                    });
+                });
+            },
             handleBrowserFileUploaded: function(e) {
+                var file = e.detail;
+                this._launchInit(file);
+            },
+            _launchInit: function(file) {
                 var me = this;
                 this.$.browserPanel.hide();
                 var studyId = this.projects[0].studies[0].id;
-                var file = e.detail;
                 var attributes = file.attributes;
                 if (attributes.pathact == null) {
                     var split = file.path.split('/');
@@ -752,7 +636,6 @@
                         });
                     });
                 }
-
             },
             handlekoControlChange: function(e) {
                 if (this.lastSelectedNode != null) {
@@ -855,34 +738,37 @@
             },
             _getFiles: function() {
                 var me = this;
-                var studyId = this.projects[0].studies[0].id;
-                OpencgaManager.files.search({
-                    query: {
-                        sid: Cookies('bioinfo_sid'),
-                        studyId: studyId,
-                        'attributes.pathact.type': 'pathact',
-                        'status': 'READY'
-                    },
-                    request: {
-                        success: function(response) {
-                            var files = response.response[0].result;
-                            files.sort(function(a, b) {
-                                return b.modificationDate.localeCompare(a.modificationDate);
-                            });
-                            me.set('files', response.response[0].result);
+                if (this.projects.length > 0 && Cookies('bioinfo_sid') != null) {
+                    var studyId = this.projects[0].studies[0].id;
+                    OpencgaManager.files.search({
+                        query: {
+                            sid: Cookies('bioinfo_sid'),
+                            studyId: studyId,
+                            'attributes.pathact.type': 'pathact',
+                            'status': 'READY'
                         },
-                        error: function() {}
-                    }
-                });
+                        request: {
+                            success: function(response) {
+                                var files = response.response[0].result;
+                                files.sort(function(a, b) {
+                                    return b.modificationDate.localeCompare(a.modificationDate);
+                                });
+                                me.set('files', response.response[0].result);
+                            },
+                            error: function() {}
+                        }
+                    });
+                }
             },
             _openRemoteFile: function(filepath, cb) {
                 var me = this;
                 var request = new XMLHttpRequest();
                 request.onload = function() {
+                    debugger
                     cb(this.responseText);
                 };
                 request.onerror = function() {
-                    console.log('Error loading pathway_list.json');
+                    console.log('Error loading remote file');
                 };
                 request.open("GET", filepath);
                 request.send();
@@ -931,250 +817,6 @@
                 this.$.geneSearch.setParseFunction(parse);
                 // this.$.knockoutGenesSearch.setSearchFunction(search);
                 // this.$.knockoutGenesSearch.setParseFunction(parse);
-            },
-
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-            /************OLD*/
-
-            handleKnockoutSearch: function(e) {
-                if (this.knockoutGeneText != '') {
-                    this.knockoutGeneText += '\n';
-                }
-                this.knockoutGeneText += e.detail;
-            },
-            handleRaiseSearch: function(e) {
-                if (this.raiseGeneText != '') {
-                    this.raiseGeneText += '\n';
-                }
-                this.raiseGeneText += e.detail;
-            },
-
-            checkExpFile: function(e) {
-                var file = e.currentTarget.selectedFile;
-                var bool = (file != null && Utils.endsWith(file.name, ".txt") && file.bioformat == "IDLIST");
-                if (bool) {
-                    this.txtFileMessage = '';
-                } else {
-                    this.txtFileMessage = 'This file is not TXT';
-                }
-                return bool;
-            },
-
-            runExample: function() {
-
-                OpencgaManager.jobs.create({
-                    query: {
-
-                        execution: this.execution,
-                        toolId: this.toolName,
-                        name: "Pathiways example",
-                        description: this.descrip,
-
-                        species: 'hsapiens',
-                        platform: 'HGU133Plus2',
-                        expdesigntype: 'categorical',
-                        control: 'CONTROL',
-                        disease: 'CRC',
-                        summ: 'per90',
-                        test: 'multilevel',
-                        pathways: "hsa03320,hsa04012,hsa04020,hsa04060,hsa04080,hsa04115,hsa04150,hsa04210,hsa04310,hsa04330,hsa04340,hsa04370,hsa04512,hsa04514,hsa04530,hsa04540,hsa04612,hsa04620,hsa04630,hsa04660,hsa04662,hsa04664,hsa04910,hsa04912,hsa04916,hsa04920",
-
-                        normmatrix: 'example_GSE4107.txt',
-                        expdesign: 'example_ED_GSE4107.txt',
-
-                    },
-
-                    request: {
-                        //method: 'POST',
-                        success: function(response) {
-                            if (response.response[0].errorMsg === '' || response.response[0].errorMsg == null) {
-                                var jobId = response.response[0].result[0].id;
-                                me.selectedOption = "jobLaunched"
-                            } else {
-                                me.message = response.response[0].errorMsg;
-                            }
-                            me.selectedStudy = null;
-                        },
-                        error: function() {
-                            me.message = 'Server error, try again later.';
-                        }
-                    }
-                });
-
-            },
-            _setError: function(id, msg) {
-                this.$[id + 'Error'].innerHTML = msg;
-                this.errorMessage = "There are errors in the form. Correct them before launching the job.";
-            },
-            _clearError: function(id) {
-                this.$[id + 'Error'].innerHTML = '';
-                this.errorMessage = '';
-            },
-            _clean: function() {
-                this.errorMessage = '';
-                this.$.exp_file.reset();
-                this.$.design_file.reset();
-                this.$.output_folder.reset();
-            },
-            launchJob: function(e) {
-                var me = this;
-
-                var query = {
-                    sid: Cookies("bioinfo_sid"),
-                    toolId: this.toolId,
-                    execution: this.execution,
-                    name: this.$.jobName.value,
-                    description: this.$.jobDescription.value
-                };
-
-                if (this.$.output_folder.selectedFile == null) {
-                    this._setError('output_folder', "No folder selected");
-                } else {
-                    this._clearError('output_folder');
-                    query['output_folder'] = this.$.output_folder.selectedFile.id;
-                    query['studyId'] = this.$.output_folder.selectedStudy.id;
-                }
-
-                if (this.$.exp_file.selectedFile == null) {
-                    this._setError('exp_file', 'No expression matrix file selected');
-                } else {
-                    this._clearError('exp_file');
-                    query['exp_file'] = this.$.exp_file.selectedFile.id;
-                }
-
-                if (this.$.form.elements['go'].checked) {
-                    query['go'] = '';
-                }
-                if (this.$.form.elements['uniprot'].checked) {
-                    query['uniprot'] = '';
-                }
-                if (this.$.form.elements['decompose'].checked) {
-                    query['decompose'] = '';
-                }
-                if (this.$.form.elements['difexp'].checked) {
-                    query['difexp'] = '';
-                }
-
-                // query['species'] = this.species;
-
-                // if (this.species == 'hsa') {
-                //     s = this.$.human.querySelectorAll('input[type=radio]');
-                //     for (var i = 0; i < s.length; i++) {
-                //         if (s[i].checked) {
-                //             query['platform'] = s[i].value;
-                //         }
-                //     }
-                // }
-                // if (this.species == 'mmu') {
-                //     s = this.$.mouse.querySelectorAll('input[type=radio]');
-                //     for (var i = 0; i < s.length; i++) {
-                //         if (s[i].checked) {
-                //             query['platform'] = s[i].value;
-                //         }
-                //     }
-                // }
-
-                var pathways = [];
-                var els = this.$.pathwaysContent.querySelectorAll('input[type=checkbox]');
-                for (var i = 0; i < els.length; i++) {
-                    var pathway = els[i];
-                    if (pathway.checked) {
-                        // pathways.push('hsa' + pathway.value);
-                        pathways.push(pathway.value);
-                    }
-                }
-                if (pathways.length < 1) {
-                    this._setError('pathways', 'Please select at least one Pathway');
-                } else {
-                    this._clearError('pathways');
-                    query['pathways'] = pathways;
-                }
-
-                if (this.errorMessage === '' && this.$.form.checkValidity()) {
-                    console.log(this.$.form.checkValidity())
-                    OpencgaManager.jobs.create({
-                        query: query,
-                        request: {
-                            //method: 'POST',
-                            success: function(response) {
-                                if (response.response[0].errorMsg === '' || response.response[0].errorMsg == null) {
-                                    var job = response.response[0].result[0];
-                                    me.selectedOption = "jobLaunched"
-                                    console.log(job);
-                                    // me._clean();
-                                    me.fire('job-launched');
-                                    //                                    me.message = job.commandLine;
-                                } else {
-                                    me.message = response.response[0].errorMsg;
-                                }
-                            },
-                            error: function() {
-                                me.message = 'Server error, try again later.';
-                            }
-                        }
-                    });
-                }
-            },
-
-            handleSelectPW: function(e) {
-                console.log(e.currentTarget.checked)
-                if (e.currentTarget.checked === true) {
-                    this.selectAllPw();
-                } else {
-                    this.deselectAllPw();
-                }
-            },
-            selectAllPw: function(e) {
-                var els = this.$.pathwaysContent.querySelectorAll('input[type=checkbox]');
-                for (var i = 0; i < els.length; i++) {
-                    els[i].checked = true;
-                }
-            },
-
-            deselectAllPw: function(e) {
-                var els = this.$.pathwaysContent.querySelectorAll('input[type=checkbox]');
-                for (var i = 0; i < els.length; i++) {
-                    els[i].checked = false;
-                }
             }
         });
     </script>

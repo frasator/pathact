@@ -1,5 +1,5 @@
 #!/bin/sh
-NAME="pathiko"
+NAME="pathact"
 BP=build
 
 rm -rf $BP
@@ -34,7 +34,7 @@ mv $BP/tmp/$NAME.min.js $BP/
 cp -r conf $BP/
 cp -r $NAME-index.html $BP/index.html
 cp -r src/images $BP/
-cp -r pathway_list.json $BP/
+cp -r pathact_example.txt $BP/
 
 #
 # fix index.html paths

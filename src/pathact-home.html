@@ -46,29 +46,12 @@
             color: #ffad76;
         }
 
-        .megabutton {
-            font-weight: 400;
-            margin: 20px;
-            padding: 20px 30px;
-            font-size: 26px;
-            border: 1px solid white;
-            border-radius: 5px;
-            width: 200px;
-            text-align: center;
-        }
-
-        .megabutton:hover {
-            background-color: white;
-            color: #435f7a;
-            cursor: pointer;
-        }
-
         .megatitle {
             font-size: 80px;
             padding-top: 30px;
             padding-bottom: 10px;
             color: white;
-            text-shadow: 3px 3px 5px #314559;
+            text-shadow: 3px 3px 5px var(--dark-primary-color);
         }
 
         .megadescription {
@@ -105,6 +88,21 @@
             color: #bf9947;
             font-size: 16px;
         }
+
+        #button {
+            font-weight: 400;
+            height: auto;
+            margin: 20px;
+            padding: 20px 30px;
+            font-size: 26px;
+            border-radius: 5px;
+            background-color: #d75a00;
+            color: var(--text-primary-color);
+        }
+
+        #button:hover {
+            background-color: #ee6908;
+        }
     </style>
     <template>
 
@@ -117,16 +115,17 @@
         <br>
 
         <div class="horizontal layout">
-            <div flex>
+            <div class="flex">
                 <img src="./images/pathiways-logo.svg" style="width:300px;">
                 <!--<img src="logo_2.svg" style="width:300px;">-->
             </div>
-            <div vertical layout center style="width:500px;">
+            <div class="vertical layout center" style="width:500px;">
                 <br>
                 <br>
                 <div class="megatitle">
                     <div class="horizontal layout center" style="margin-left:15px;">
-                        Path<span style="font-weight:normal;">Act</span>
+                        Path
+                        <span style="font-weight:normal;">Act</span>
                     </div>
                 </div>
                 <!--<div class="megadescription">-->
@@ -134,13 +133,9 @@
                 <!--</div>-->
                 <br>
 
-                <template if="{{!isLogged}}">
-                    <div class="megabutton" on-click="{{annonymousLogin}}">
-                        <!--<font-awesome icon="hand-o-left"></font-awesome>-->
-                        <font-awesome icon="sign-in"></font-awesome>
-                        &nbsp;&nbsp;&nbsp; Try it now
-                    </div>
-                </template>
+                <div id="button" class="jso-btn jso-btn-shdw" on-click="handleStart">
+                    <i class="fa fa-paper-plane"></i> &nbsp; Start
+                </div>
 
             </div>
         </div>
@@ -160,8 +155,8 @@
     <script>
         Polymer({
             is: 'pathact-home',
-            annonymousLogin: function() {
-                this.fire('annonymous');
+            handleStart: function() {
+                this.fire('start');
             }
         })
     </script>

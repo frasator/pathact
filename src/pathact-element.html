@@ -104,7 +104,7 @@
 
 
         <div class="content" menu-option="home,job,pathact">
-            <jso-panel id="browserPanel" hidden collapsible movable closable on-hidden="handlePanelHidden">
+            <!-- <jso-panel id="browserPanel" hidden collapsible movable closable on-hidden="handlePanelHidden">
                 <div class="header">
                     <i class="fa fa-cloud"></i>&nbsp; Browse my data
                 </div>
@@ -120,7 +120,7 @@
                     <jso-opencga-job-browser id="jobrowser" no-relaunch on-jobselect="handleJobSelect" allowed-tools="{{allowedTools}}" projects="{{projects}}" on-need-refresh="handleUserNeedRefresh">
                     </jso-opencga-job-browser>
                 </div>
-            </jso-panel>
+            </jso-panel> -->
         </div>
 
         <div class="content" menu-option="pathact">
@@ -128,10 +128,10 @@
         </div>
 
         <div class="content" menu-option="home">
-            <pathact-home on-annonymous="annonymousLogin" isLogged="{{isLogged}}"></pathact-home>
+            <pathact-home id="home" on-start="handleHomeStart" isLogged="{{isLogged}}"></pathact-home>
         </div>
 
-        <jso-opencga-header id="jsoHeader" show-anonymous hide-jobs hide-browse selected-option="{{selectedOption}}" user-data="{{userData}}" on-login="handleLogin" on-logout="handleLogout">
+        <jso-opencga-header id="jsoHeader" hide-jobs hide-browse selected-option="{{selectedOption}}" user-data="{{userData}}" on-login="handleLogin" on-logout="handleLogout">
             <!--<div hidden class="icon">-->
             <!--<img src="" style="height: 0px;margin: 5px 0px 0 0;">-->
             <!--</div>-->
@@ -139,7 +139,8 @@
                 <img src="./images/pathiways-logo.svg" style="height: 54px;margin: 3px 5px 0 0;">
             </div> -->
             <div class="title horizontal layout center" style="margin-left:15px;">
-                Path<span style="font-weight:normal;">Act</span>
+                Path
+                <span style="font-weight:normal;">Act</span>
             </div>
             <span id="description" class="description">
 
@@ -147,7 +148,7 @@
 
             <div id="menu" class="menu horizontal layout flex">
                 <!-- <div class="flex"></div> -->
-                <div style="margin-left:4vw;"></div>
+                <!-- <div style="margin-left:4vw;"></div>
                 <div title="Open Pathiways form" class="option" on-click="handleMenuOption" data-option="home">
                     <i class="fa fa-magic"></i>
                     <span class="option-text">Home</span>
@@ -165,18 +166,12 @@
                     <i class="fa fa-rocket"></i>
                     <span class="option-text">My jobs</span>
                 </div>
-                <div style="margin-left:2vw;"></div>
+                <div style="margin-left:2vw;"></div> -->
             </div>
 
             <jso-help-menu class="helpmenu" selectedOption="{{selectedOption}}">
-                <a href="https://github.com/opencb/cell-maps/wiki/About-CellMaps" target="_blank">
-                    <i class="fa fa-list-alt"></i> &nbsp; About
-                </a>
-                <a href="https://github.com/opencb/cell-maps/wiki/Documentation" target="_blank">
+                <a href="http://pathact.babelomics.org/doc" target="_blank">
                     <i class="fa fa-book"></i> &nbsp; Documentation
-                </a>
-                <a href="https://github.com/opencb/cell-maps/wiki/Working-examples" target="_blank">
-                    <i class="fa fa-magic"></i> &nbsp; Working examples
                 </a>
             </jso-help-menu>
         </jso-opencga-header>
@@ -197,10 +192,12 @@
             properties: {
                 bioformats: {
                     type: Array,
-                    notify: true,
                     value: [{
                         value: 'DATAMATRIX_EXPRESSION',
                         text: 'Data matrix expression'
+                    },{
+                        value: 'IDLIST_RANKED',
+                        text: 'IDLIST_RANKED'
                     }]
                 },
                 allowedTools: {
@@ -221,7 +218,6 @@
             },
             ready: function() {
                 var me = this;
-                this.setMenu('pathact')
             },
             handleFileSelect: function(e) {
                 console.log("file");
@@ -245,15 +241,24 @@
                     this._lastLogedRequest.hidden = false;
                     this._lastLogedRequest = null;
                 }
+
+                this.$.home.isLogged = true;
+                this.setMenu('pathact');
             },
             handleLogout: function() {
-                this.$.browserPanel.hidden = true;
+                this.$.home.isLogged = false;
+                this.setMenu('home');
+                this.$.pathactForm.clean();
             },
             handleUserNeedRefresh: function() {
                 this.$.jsoHeader.getUserInfo(true);
             },
-            annonymousLogin: function() {
-                this.$.jsoHeader.anonymousSign();
+            handleHomeStart: function() {
+                if (this.$.jsoHeader.isLogged == true) {
+                    this.setMenu('pathact');
+                } else {
+                    this.$.jsoHeader.anonymousSign();
+                }
             }
         });
     </script>
