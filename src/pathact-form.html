@@ -592,9 +592,7 @@
                 var me = this;
                 var studyId = this.projects[0].studies[0].id;
                 this._openRemoteFile('./pathact_example.txt', function(content) {
-                    debugger
                     me._uploadFile(studyId, '', 'pathact_example.txt', content, 'DATAMATRIX_EXPRESSION', function(file) {
-                        debugger
                         if (file != null) {
 
                         }
@@ -764,7 +762,6 @@
                 var me = this;
                 var request = new XMLHttpRequest();
                 request.onload = function() {
-                    debugger
                     cb(this.responseText);
                 };
                 request.onerror = function() {
