@@ -35,6 +35,9 @@ cp -r conf $BP/
 cp -r $NAME-index.html $BP/index.html
 cp -r src/images $BP/
 cp -r pathact_example.txt $BP/
+cp -r drugmap.json.gz $BP/
+cp -r genemap.json.gz $BP/
+cp -r drug-actions.json $BP/
 
 #
 # fix index.html paths
