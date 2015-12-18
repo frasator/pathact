@@ -30,7 +30,7 @@
 
         #left {
             position: relative;
-            width: 220px;
+            width: 280px;
             box-sizing: border-box;
             height: 100%;
         }
@@ -61,10 +61,8 @@
             padding: 5px 10px 10px 10px;
         }
 
-        #geneList,
-        #fileList,
+        .list,
         .plist {
-            display: block;
             position: relative;
             box-sizing: border-box;
             overflow-y: auto;
@@ -101,10 +99,12 @@
         }
 
         .plist > div > span[data-up]:before {
+            /*content: '\f062';*/
             content: '\f176';
         }
 
         .plist > div > span[data-down]:before {
+            /*content: '\f063';*/
             content: '\f175';
         }
 
@@ -120,19 +120,17 @@
             padding: 4px;
         }
 
-        #selectButton,
-        #updateGenesButton {
+        .button {
             /*height:auto;*/
             /*padding:5px 5px;*/
             /*color: var(--default-primary-color);*/
-            background-color: #d75a00;
+            background-color: #d75a00 !important;
             /*border-color: var(--dark-primary-color);*/
-            color: var(--text-primary-color);
+            color: var(--text-primary-color) !important;
         }
 
-        #selectButton:hover,
-        #updateGenesButton:hover {
-            background-color: #ee6908;
+        .button:hover {
+            background-color: #ee6908 !important;
         }
 
         #geneSearch {
@@ -161,9 +159,9 @@
         <form id="form" class="horizontal layout">
             <div id="left" class="vertical layout">
                 <label class="jso">Expression matrix files:</label>
-                <div id="selectButton" class="jso-btn jso-btn-shdw" on-click="handleLoadExample"> <i class="fa fa-magic"></i>&nbsp;Load example file</div>
-                <div id="selectButton" class="jso-btn jso-btn-shdw" on-click="handleOpenBrowser"> <i class="fa fa-cloud-upload"></i>&nbsp;Load file... </div>
-                <div id="fileList" style="height:200px;">
+                <div id="exampleButton" class="jso-btn jso-btn-shdw button" on-click="handleLoadExample"> <i class="fa fa-magic"></i>&nbsp;Load example file</div>
+                <div id="selectButton" class="jso-btn jso-btn-shdw button" on-click="handleOpenBrowser"> <i class="fa fa-cloud-upload"></i>&nbsp;Load file... </div>
+                <div id="fileList" class="list" style="height:200px;">
                     <template is="dom-repeat" items="{{files}}">
                         <pathact-file-option file="{{item}}" on-click="handleFileClick" data-checked$="{{isFileSelected(item, selectedFile)}}"></pathact-file-option>
                     </template>
@@ -172,27 +170,33 @@
                 <!-- <div id="selectButton" class="jso-btn jso-btn-shdw" on-click="handleOpenFile"> Open file... </div> -->
                 <!-- <input type="file" style="position: fixed; top: -100em" id="openInput" on-change="handleOpenInputChange"> -->
 
-                <label class="jso" style="margin-top:20px;">Gene list:</label>
-                <div id="updateGenesButton" class="jso-btn jso-btn-shdw" on-click="handleUpdateButton"> <i class="fa fa-refresh"></i>&nbsp;Update </div>
-                <jso-search id="geneSearch" placeholder="Search genes..." on-select="handleGeneSearch"></jso-search>
-                <div id="geneList" style="height:200px;">
+                <label class="jso" style="margin-top:20px;"><i class="fa fa-gavel"></i> Gene list:</label>
+                <div id="updateGenesButton" class="jso-btn jso-btn-shdw button" on-click="handleUpdateButton"> <i class="fa fa-refresh"></i>&nbsp;Update </div>
+                <jso-search id="geneSearch" placeholder="Search genes..." on-item-select="handleGeneSearch"></jso-search>
+                <div id="geneList" class="list flex">
                     <template is="dom-repeat" items="{{geneList}}">
-                        <pathact-gene-option name="{{item.name}}" value="{{item.value}}" on-remove="handleRemoveGene" on-change="handleChangeGene"></pathact-gene-option>
+                        <pathact-gene-option name="{{item.name}}" value="{{item.value}}" manual="{{item.manual}}" drug="{{item.drug}}" action="{{item.action}}" drugvalue="{{item.drugvalue}}" is-one-drug-selected="{{isOneDrugSelected}}" on-remove="handleRemoveGene" on-change="handleChangeGene"></pathact-gene-option>
+                    </template>
+                    <template is="dom-repeat" items="{{relatedGeneList}}">
+                        <pathact-gene-option name="{{item.name}}" manual="{{item.manual}}" drug="{{item.drug}}" action="{{item.action}}" drugvalue="{{item.drugvalue}}" is-one-drug-selected="{{isOneDrugSelected}}"></pathact-gene-option>
                     </template>
                 </div>
 
-                <label class="jso" style="margin-top:20px;">Gene related drugs:</label>
-                <div class="">
+                <label class="jso" style="margin-top:10px;"><i class="fa fa-flask"></i> Related drug list:</label>
+                <div id="drugActionsConfigButton" class="jso-btn jso-btn-shdw button" on-click="handleConfigureDrugActions">
+                    <i class="fa fa-sliders"></i>&nbsp; Configure target actions
                 </div>
-                <label class="jso" style="margin-top:20px;">Drug related genes:</label>
-                <div class="">
+                <div id="relatedDrugList" class="list flex">
+                    <template is="dom-repeat" items="{{relatedDrugList}}">
+                        <pathact-drug-option drug="{{item}}" on-selected-change="handleDrugSelectedChange"></pathact-drug-option>
+                    </template>
                 </div>
             </div>
             <div id="center" class="flex">
                 <div class="horizontal layout center">
                     <label class="jso flex">Pathway viewer:</label>
                 </div>
-                <jso-network-viewer id="networkViewer" style="height:calc(100% - 22px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar on-leftclickvertex="handleNetworkViewerVertexClick"></jso-network-viewer>
+                <jso-network-viewer id="networkViewer" style="height:calc(100% - 22px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar disable-context-menu on-leftclickvertex="handleNetworkViewerVertexClick"></jso-network-viewer>
             </div>
             <div id="right">
                 <label class="jso">Pathway list:</label>
@@ -227,6 +231,17 @@
                     </div>
                     <jso-opencga-browser enable-select-ok id="browser" class="container flex" mode="file" on-fileselect="handleBrowserFileSelect" on-ok-click="handleBrowserOkClick" on-file-uploaded="handleBrowserFileUploaded" bioformats="{{bioformats}}" projects="{{projects}}"></jso-opencga-browser>
                 </jso-panel>
+
+                <jso-panel hidden fixed modal closable id="configureDrugActionsPanel">
+                    <div class="header">
+                        Configure drug action weight
+                    </div>
+                    <div id="drugActionList" class=" list container horizontal layout wrap flex" style="width:650px; padding:7px;">
+                        <template is="dom-repeat" items="{{drugActionList}}">
+                            <pathact-action-option style="width:315px" name="{{item.name}}" value="{{item.value}}" on-change="handleChangeAction"></pathact-action-option>
+                        </template>
+                    </div>
+                </jso-panel>
         </form>
         <div id="loading" hidden$="{{!loading}}" class="horizontal layout center-justified jso-unselectable">
             <div class="self-center">
@@ -259,6 +274,24 @@
                 selectedPath: {
                     type: Object
                 },
+                drugActionList: {
+                    type: Array
+                },
+                drugActionList: {
+                    type: Object
+                },
+                relatedDrugList: {
+                    type: Array
+                },
+                relatedGeneList: {
+                    type: Array
+                },
+                _drugToGeneMap: {
+                    type: Object
+                },
+                _geneToDrugMap: {
+                    type: Object
+                },
                 bioformats: {
                     type: Array
                 },
@@ -278,9 +311,9 @@
                     type: Array,
                     value: function() {
                         return []
-                    }
+                    },
                 },
-                geneKoMap: {
+                geneMap: {
                     type: Object,
                     value: function() {
                         return {}
@@ -296,7 +329,76 @@
                 },
                 lastSelectedNode: {
                     type: Object,
+                },
+                isOneDrugSelected: {
+                    type: Boolean,
+                    value: false
                 }
+            },
+            observers: [
+                'geneListchanged(geneList.splices)'
+            ],
+            geneListchanged: function() {
+                this._rebuildGeneMap();
+                var relatedDrugList = [];
+                for (var i = 0; i < this.geneList.length; i++) {
+                    var g = this.geneList[i];
+                    var drugIds = this._geneToDrugMap[g.name];
+                    if (Array.isArray(drugIds)) {
+                        for (var j = 0; j < drugIds.length; j++) {
+                            var drugId = drugIds[j];
+                            var d = this._drugToGeneMap[drugId];
+                            d.s = false;
+                            relatedDrugList.push(d);
+                        }
+                    }
+                }
+                this.set('relatedDrugList', relatedDrugList);
+                this._processDrugRelatedGenes();
+            },
+            handleDrugSelectedChange: function(e) {
+                this._processDrugRelatedGenes();
+
+            },
+            _processDrugRelatedGenes: function() {
+                var isOneDrugSelected = false;
+                this.set('relatedGeneList', []);
+                var auxGeneMap = {};
+                for (var i = 0; i < this.relatedDrugList.length; i++) {
+                    var drug = this.relatedDrugList[i];
+                    if (drug.s === true) {
+                        isOneDrugSelected = true;
+                        var targets = drug.t;
+                        for (var j = 0; j < targets.length; j++) {
+                            var target = targets[j];
+                            var drugvalue;
+                            if (target.a != "") {
+                                drugvalue = this.drugActionMap[target.a.toLowerCase()].value;
+                            } else {
+                                drugvalue = this.drugActionMap['unknown'].value;
+                            }
+                            console.log(drugvalue);
+                            if (this.geneMap[target.g] == null) {
+                                if (auxGeneMap[target.g] == null) {
+                                    auxGeneMap[target.g] = true;
+                                    this.push('relatedGeneList', {
+                                        name: target.g,
+                                        manual: false,
+                                        drug: drug.n,
+                                        action: target.a,
+                                        drugvalue: drugvalue
+                                    });
+                                }
+                            } else {
+                                var pos = this.geneMap[target.g];
+                                this.set('geneList.' + pos + '.drug', drug.n)
+                                this.set('geneList.' + pos + '.action', target.a)
+                                this.set('geneList.' + pos + '.drugvalue', drugvalue)
+                            }
+                        }
+                    }
+                }
+                this.set('isOneDrugSelected', isOneDrugSelected);
             },
             _pwSortFn: function(a, b) {
                 if (a.haschanged && !b.haschanged) {
@@ -326,6 +428,40 @@
                 //     }
                 //     me.set('pathwayList', pathwayList);
                 // });
+
+                this._openRemoteFileArrayBuffer('./drugmap.json.gz', function(content) {
+                    var map = JSON.parse(pako.ungzip(content, {
+                        to: 'string'
+                    }));
+                    me.set('_drugToGeneMap', map);
+                });
+                this._openRemoteFileArrayBuffer('./genemap.json.gz', function(content) {
+                    var map = JSON.parse(pako.ungzip(content, {
+                        to: 'string'
+                    }));
+                    me.set('_geneToDrugMap', map);
+                });
+                this._openRemoteFile('./drug-actions.json', function(content) {
+                    var actionNames = JSON.parse(content);
+                    var nameMap = {};
+                    var actions = [];
+                    var actionsMap = {};
+                    for (var i = 0; i < actionNames.length; i++) {
+                        var n = actionNames[i].toLowerCase();
+                        if (nameMap[n] !== true) {
+                            nameMap[n] = true;
+                            var obj = {
+                                name: n,
+                                // value: me.defaultKoValue,
+                                value: 0.2
+                            };
+                            actions.push(obj);
+                            actionsMap[n] = obj;
+                        }
+                    }
+                    me.set('drugActionList', actions);
+                    me.set('drugActionMap', actionsMap);
+                });
             },
             ready: function() {
                 var me = this;
@@ -352,7 +488,7 @@
                 this.set('pathList', null);
                 this.set('pathwayList', null);
                 this.set('geneList', []);
-                this.set('geneKoMap', {});
+                this.set('geneMap', {});
                 this.set('selectedFile', null);
                 this.set('selectedPathway', null);
                 this.set('selectedPath', null);
@@ -397,6 +533,10 @@
                 var file = e.currentTarget.file;
                 this._selectFile(file);
             },
+            handleConfigureDrugActions: function() {
+                this.$.configureDrugActionsPanel.show();
+            },
+
             _selectFile: function(file) {
                 var me = this;
                 if (this.loading == false) {
@@ -594,7 +734,7 @@
                 this._openRemoteFile('./pathact_example.txt', function(content) {
                     me._uploadFile(studyId, '', 'pathact_example.txt', content, 'DATAMATRIX_EXPRESSION', function(file) {
                         if (file != null) {
-
+                            me._launchInit(file);
                         }
                     });
                 });
@@ -637,18 +777,19 @@
             },
             handlekoControlChange: function(e) {
                 if (this.lastSelectedNode != null) {
-                    this._addGene(this.lastSelectedNode, e.currentTarget.value);
+                    this._addGene(this.lastSelectedNode, e.currentTarget.value, true);
                 }
             },
-            _addGene: function(name, value) {
-                if (this.geneKoMap[name] == null) {
+            _addGene: function(name, value, manual) {
+                if (this.geneMap[name] == null) {
                     var insertPosition = this.push('geneList', {
                         name: name,
-                        value: value
+                        value: value,
+                        manual: manual
                     }) - 1;
-                    this.geneKoMap[name] = insertPosition;
+                    this.geneMap[name] = insertPosition;
                 } else {
-                    var position = this.geneKoMap[name];
+                    var position = this.geneMap[name];
                     var key = 'geneList.' + position + '.value';
                     this.set(key, value);
                 }
@@ -656,8 +797,8 @@
             },
             handleRemoveGene: function(e) {
                 var name = e.detail;
-                this.splice('geneList', this.geneKoMap[name], 1);
-                var key = 'geneKoMap.' + name;
+                this.splice('geneList', this.geneMap[name], 1);
+                var key = 'geneMap.' + name;
                 this.set(key, null);
                 this._rebuildGeneMap();
                 this._saveGeneList();
@@ -665,10 +806,13 @@
             handleChangeGene: function() {
                 this._saveGeneList();
             },
+            handleChangeAction: function() {
+                console.log("TODO");
+            },
             _rebuildGeneMap: function() {
                 for (var i = 0; i < this.geneList.length; i++) {
                     var item = this.geneList[i];
-                    this.geneKoMap[item.name] = i;
+                    this.geneMap[item.name] = i;
                 }
             },
             _saveGeneList: function() {
@@ -683,7 +827,6 @@
             },
             _loadGeneList: function(list) {
                 this.set('geneList', list);
-                this._rebuildGeneMap();
             },
             handleBrowserOkClick: function(e) {},
             handleBrowserFileSelect: function(e) {
@@ -693,8 +836,8 @@
                 var v = this.$.networkViewer.graph.getVertexById(e.detail.vertexId);
                 this.lastSelectedNode = v.attributes.label;
 
-                if (this.geneList[this.geneKoMap[this.lastSelectedNode]] != null) {
-                    this.koInputValue = this.geneList[this.geneKoMap[this.lastSelectedNode]].value;
+                if (this.geneList[this.geneMap[this.lastSelectedNode]] != null) {
+                    this.koInputValue = this.geneList[this.geneMap[this.lastSelectedNode]].value;
                 } else {
                     this.koInputValue = this.defaultKoValue;
                 }
@@ -769,13 +912,25 @@
                 };
                 request.open("GET", filepath);
                 request.send();
-
+            },
+            _openRemoteFileArrayBuffer: function(filepath, cb) {
+                var me = this;
+                var request = new XMLHttpRequest();
+                request.onload = function() {
+                    cb(this.response);
+                };
+                request.onerror = function() {
+                    console.log('Error loading remote file');
+                };
+                request.open("GET", filepath);
+                request.responseType = 'arraybuffer';
+                request.send();
             },
 
             handleGeneSearch: function(e) {
                 var name = e.detail;
-                if (this.geneKoMap[name] == null) {
-                    this._addGene(e.detail, this.defaultKoValue);
+                if (this.geneMap[name] == null) {
+                    this._addGene(name, this.defaultKoValue, true);
                 }
             },
             _initGeneSearch: function() {
@@ -819,7 +974,7 @@
     </script>
 </dom-module>
 
-<dom-module id="pathact-gene-option">
+<dom-module id="pathact-action-option">
     <style>
         :host {
             display: block;
@@ -839,36 +994,25 @@
 
         .name {
             margin-right: 3px;
+            text-transform: capitalize;
         }
 
         .value {
             width: 80px;
         }
-
-        .delete {
-            margin-left: 3px;
-            color: var(--secondary-text-color);
-        }
-
-        .delete:hover {
-            color: #880000 !important;
-        }
     </style>
     <template>
         <div id="main" class="horizontal layout center">
-            <div class="name flex">{{name}}</div>
+            <div class="name flex">{{name}}:</div>
             <div class="value">
                 <input class="jso" type="number" max="1" min="0" step="0.1" value="{{value::input}}" />
-            </div>
-            <div class="delete jso-btn" on-click="handleRemove">
-                <i class="fa fa-times"></i>
             </div>
         </div>
     </template>
 </dom-module>
 <script>
     Polymer({
-        is: 'pathact-gene-option',
+        is: 'pathact-action-option',
         properties: {
             name: {
                 type: String,
@@ -882,11 +1026,144 @@
                 observer: 'valueChanged'
             },
         },
+        valueChanged: function() {
+            this.fire('changed', this.value);
+        }
+    });
+</script>
+
+<dom-module id="pathact-gene-option">
+    <style>
+        :host {
+            display: block;
+            position: relative;
+            box-sizing: border-box;
+            word-break: break-all;
+            color: #777;
+        }
+
+        :host[manual] {
+            color: var(--primary-text-color);
+        }
+
+        #main {
+            margin-top: 3px;
+            margin-left: 6px;
+            margin-right: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .name {
+            margin-right: 3px;
+        }
+
+        .value {
+            width: 60px;
+        }
+
+        .delete {
+            margin-left: 3px;
+            color: var(--secondary-text-color);
+        }
+
+        .delete:hover {
+            color: #880000 !important;
+        }
+
+        .fa {
+            text-align: center;
+            width: 10px;
+        }
+
+        input[readonly] {
+            color: #777 !important;
+        }
+    </style>
+    <template>
+        <div id="main" class="horizontal layout center">
+            <div class="name flex">{{name}}</div>
+            <div class="value">
+                <input class="jso" type="number" max="1" min="0" step="0.1" value="{{internalValue::input}}" readonly$="{{isOneDrugSelected}}" />
+            </div>
+            <div hidden="{{!manual}}" class="delete jso-btn" on-click="handleRemove">
+                <i class="fa fa-times"></i>
+            </div>
+        </div>
+        <div hidden$="{{!isOneDrugSelected}}">
+            <i class="fa fa-flask"></i> {{drug}}
+        </div>
+        <div hidden$="{{!isOneDrugSelected}}">
+            <i class="fa fa-flash"></i> {{action}}
+        </div>
+    </template>
+</dom-module>
+<script>
+    Polymer({
+        is: 'pathact-gene-option',
+        properties: {
+            name: {
+                type: String,
+                notify: true
+            },
+            value: {
+                type: String,
+                notify: true,
+                value: ''
+            },
+            drug: {
+                type: String,
+                notify: true
+            },
+            action: {
+                type: String,
+                notify: true
+            },
+            drugvalue: {
+                type: String,
+                notify: true,
+                value: ''
+            },
+            manual: {
+                type: Boolean,
+                reflectToAttribute: true,
+                value: false
+            },
+            isOneDrugSelected: {
+                type: Boolean,
+                value: false
+            },
+            internalValue: {
+                type: Number,
+                observer: 'internalValueChanged',
+                value: 0
+            }
+        },
+        observers: [
+            'updateValue(isOneDrugSelected, manual)'
+        ],
         handleRemove: function() {
             this.fire('remove', this.name);
         },
-        valueChanged: function() {
-            this.fire('changed', this.value);
+        handleInput: function(e) {
+            this.fire('changed', e.currentTarget.value);
+        },
+        internalValueChanged: function(neo, old) {
+            if (this.isOneDrugSelected === false) {
+                this.value = this.internalValue;
+            }
+            this.fire('changed', this.internalValue);
+        },
+        updateValue: function(isOneDrugSelected, manual) {
+            if (isOneDrugSelected === true) {
+                this.set('internalValue', this.drugvalue);
+                return;
+            } else {
+                this.action = '';
+                this.drug = '';
+            }
+            this.set('internalValue', this.value);
         }
     });
 </script>
@@ -1030,6 +1307,47 @@
                     }
                 });
             }
+        }
+    });
+</script>
+
+<dom-module id="pathact-drug-option">
+    <style>
+        :host {
+            display: block;
+            position: relative;
+            box-sizing: border-box;
+            word-break: break-all;
+            cursor: pointer;
+        }
+
+        .name {
+            margin-right: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+    <template>
+        <label class="jso-control ">
+            <input type="checkbox" checked$="{{drug.s}}" on-click="handleClick">
+            <span class="name">{{drug.n}}</span>
+        </label>
+    </template>
+</dom-module>
+<script>
+    Polymer({
+        is: 'pathact-drug-option',
+        behaviors: [JsoOpencgaManagerBehavior],
+        properties: {
+            drug: {
+                type: Object
+            }
+        },
+        handleClick: function(e) {
+            var input = e.currentTarget;
+            this.set('drug.s', input.checked);
+            this.fire('selected-change', input.checked);
         }
     });
 </script>
