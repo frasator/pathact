@@ -14,7 +14,7 @@
             height: 100%;
             width: 100%;
             box-sizing: border-box;
-            padding: 10px 10px;
+            padding: 8px 10px 10px 10px;
             /*margin: 0px auto 0px auto;*/
             /*max-width: 1000px;*/
             /*border: 1px solid #c6d0da;*/
@@ -26,6 +26,7 @@
             width: 280px;
             box-sizing: border-box;
             height: 100%;
+            padding-top: 4px;
         }
 
         #left {
@@ -33,6 +34,7 @@
             width: 280px;
             box-sizing: border-box;
             height: 100%;
+            padding-top: 4px;
         }
 
         #left > .jso-btn {
@@ -133,6 +135,16 @@
             background-color: #ee6908 !important;
         }
 
+        .button[report-disabled] {
+            color: var(--secondary-text-color) !important;
+            background-color: var(--light-primary-color) !important;
+        }
+
+        .button[report-disabled]:hover {
+            color: var(--secondary-text-color) !important;
+            background-color: var(--light-primary-color) !important;
+        }
+
         #geneSearch {
             width: 100%;
             margin-bottom: 3px;
@@ -153,6 +165,20 @@
             /*background-color: var(--accent-color);*/
             color: #fff;
             padding: 10px 40px;
+        }
+
+        #reportPanel {
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            top: 60px;
+            left: 0;
+        }
+
+        #reportPanelContainer {
+            width: 100%;
+            height: 100%;
+            background-color: #fff !important;
         }
     </style>
     <template>
@@ -198,6 +224,8 @@
             <div id="center" class="flex">
                 <div class="horizontal layout center">
                     <label class="jso flex">Pathway viewer:</label>
+                    <div class="flex"></div>
+                    <div report-disabled$="{{!reportExists(reportFile)}}" on-click="handleReportButton" class="jso-btn jso-btn-shdw button" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show report</div>
                 </div>
                 <jso-network-viewer id="networkViewer" style="height:calc(100% - 22px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar disable-context-menu on-leftclickvertex="handleNetworkViewerVertexClick"></jso-network-viewer>
             </div>
@@ -225,7 +253,7 @@
 
                 <div id="koControl">
                     <label class="jso">Activity value:</label>
-                    <input class="jso" type="number" min="0" max="1" step="0.1" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
+                    <input class="jso" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
                 </div>
 
                 <jso-panel hidden fixed modal closable id="browserPanel">
@@ -251,6 +279,13 @@
                 <i class="fa fa-circle-o-notch fa-spin"></i> Loading...
             </div>
         </div>
+        <jso-panel hidden closable id="reportPanel">
+            <div class="header">
+                Report
+            </div>
+            <div id="reportPanelContainer" class="container">
+            </div>
+        </jso-panel>
     </template>
 
     <script>
@@ -336,6 +371,10 @@
                 isOneDrugSelected: {
                     type: Boolean,
                     value: false
+                },
+                reportFile: {
+                    type: Object,
+                    value: null
                 }
             },
             observers: [
@@ -457,6 +496,7 @@
                 this.set('selectedFile', null);
                 this.set('selectedPathway', null);
                 this.set('selectedPath', null);
+                this.set('reportFile', null);
                 this._fileIntervalId = null;
                 this.$.networkViewer.startOver();
                 this.loading = false;
@@ -483,6 +523,25 @@
                     if (file != null) {
                         this._selectFile(file);
                     }
+                }
+                if (this.files == null) {
+                    this.clean();
+                }
+                if (Array.isArray(this.files) && this.files.length == 0) {
+                    this.clean();
+                }
+            },
+            reportExists: function(reportFile) {
+                if (reportFile == null) {
+                    this.$.reportPanel.hide();
+                }
+                return reportFile != null;
+            },
+            handleReportButton: function(e) {
+                if (this.reportFile != null) {
+                    this.$.reportPanel.show();
+                } else {
+                    this.$.reportPanel.hide();
                 }
             },
             isFileSelected: function(file, selectedFile) {
@@ -526,6 +585,19 @@
                                 me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
                                     me._loadPathwayList(JSON.parse(content));
                                     me.loading = false;
+                                });
+                                me._getFileContent(me._resultFileNameMap['report.xml'].id, function(content) {
+                                    console.log(content);
+                                    if (content.indexOf('ko_update') != -1) {
+                                        var result = document.createElement('jso-' + 'pathways' + '-result');
+                                        var el = me.$.reportPanelContainer.querySelector('jso-pathways-result');
+                                        if (el != null) {
+                                            Polymer.dom(me.$.reportPanelContainer).removeChild(el);
+                                        }
+                                        result.set('job', job);
+                                        Polymer.dom(me.$.reportPanelContainer).appendChild(result);
+                                        me.reportFile = me._resultFileNameMap['report.xml'];
+                                    }
                                 });
                             });
                         });
@@ -632,31 +704,42 @@
                             // me.$.networkViewer.setVertexDefaultLabelAttribute('genesList');
                             me.$.networkViewer.setVertexDefaultLabelAttribute('label');
 
-                            for (var i = 0; i < me.geneList.length; i++) {
-                                var name = me.geneList[i].name;
-                                for (var j = 0; j < me.$.networkViewer.vertices.length; j++) {
-                                    var v = me.$.networkViewer.vertices[j];
-                                    if (v.attributes['label'].indexOf(name) != -1) {
-                                        v.renderer.set('strokeSize', 6);
-                                        v.renderer.set('strokeColor', '#ee6908');
-                                    }
-                                }
-                            }
-                            for (var i = 0; i < me.relatedGeneList.length; i++) {
-                                var name = me.relatedGeneList[i].name;
-                                for (var j = 0; j < me.$.networkViewer.vertices.length; j++) {
-                                    var v = me.$.networkViewer.vertices[j];
-                                    if (v.attributes['label'].indexOf(name) != -1) {
-                                        v.renderer.set('strokeSize', 6);
-                                        v.renderer.set('strokeColor', '#59ee08');
-                                    }
-                                }
-                            }
+                            me._updateGeneListVerticesStroke();
 
                             me.loading = false;
                         });
                     });
                 });
+            },
+            _updateGeneListVerticesStroke: function() {
+                for (var i = 0; i < this.geneList.length; i++) {
+                    var name = this.geneList[i].name;
+                    for (var j = 0; j < this.$.networkViewer.vertices.length; j++) {
+                        var v = this.$.networkViewer.vertices[j];
+                        if (v.attributes['label'].indexOf(name) != -1) {
+                            v.renderer.set('strokeSize', 6);
+                            v.renderer.set('strokeColor', '#ee6908');
+                        } else {
+                            v.renderer.set('strokeSize', 2);
+                            v.renderer.set('strokeColor', '#888888');
+                        }
+                    }
+                }
+                if (Array.isArray(this.relatedGeneList)) {
+                    for (var i = 0; i < this.relatedGeneList.length; i++) {
+                        var name = this.relatedGeneList[i].name;
+                        for (var j = 0; j < this.$.networkViewer.vertices.length; j++) {
+                            var v = this.$.networkViewer.vertices[j];
+                            if (v.attributes['label'].indexOf(name) != -1) {
+                                v.renderer.set('strokeSize', 6);
+                                v.renderer.set('strokeColor', '#59ee08');
+                            } else {
+                                v.renderer.set('strokeSize', 2);
+                                v.renderer.set('strokeColor', '#888888');
+                            }
+                        }
+                    }
+                }
             },
             geneListchanged: function() {
                 this._rebuildGeneMap();
@@ -675,6 +758,7 @@
                 }
                 this.set('relatedDrugList', relatedDrugList);
                 this._processDrugRelatedGenes();
+                // this._updateGeneListVerticesStroke();
             },
             handleDrugSelectedChange: function(e) {
                 this._processDrugRelatedGenes();
@@ -794,6 +878,7 @@
                     }
                     ko_file_content = ko_file_lines.join('\n') + '\n';
                     if (ko_file_content.trim() != "") {
+                        this.reportFile = null;
                         this._saveAttributesToFile();
                         console.log(ko_file_content);
                         var ko_file = new File([ko_file_content], "ko_file.txt");
@@ -810,6 +895,22 @@
                             me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
                                 me._loadPathwayList(JSON.parse(content));
                                 me.loading = false;
+
+                                me._getFileContent(me._resultFileNameMap['report.xml'].id, function(content) {
+                                    console.log(content);
+                                    if (content.indexOf('ko_update') != -1) {
+                                        me._getJobBean(me.selectedFile.attributes.pathact.jobId, function(job) {
+                                            var result = document.createElement('jso-' + 'pathways' + '-result');
+                                            var el = me.$.reportPanelContainer.querySelector('jso-pathways-result');
+                                            if (el != null) {
+                                                Polymer.dom(me.$.reportPanelContainer).removeChild(el);
+                                            }
+                                            result.set('job', job);
+                                            Polymer.dom(me.$.reportPanelContainer).appendChild(result);
+                                            me.reportFile = me._resultFileNameMap['report.xml'];
+                                        });
+                                    }
+                                });
                             });
                         };
                         this.loading = true;
@@ -850,7 +951,7 @@
                 if (attributes.pathact == null) {
                     var split = file.path.split('/');
                     split.pop();
-                    var folderName = 'pathact-init-' + file.name;
+                    var folderName = '.pathact-init-' + file.name;
                     this._createFolder(studyId, split.join('/'), folderName, function(folder) {
                         me._launchpathactInit(studyId, file, folder, function(job) {
                             var split2 = job.params.exp_file.split('/');
@@ -890,7 +991,11 @@
                 } else {
                     var position = this.geneMap[name];
                     var key = 'geneList.' + position + '.value';
+                    var key2 = 'geneList.' + position + '.interalValue';
                     this.set(key, value);
+                    this.set(key2, value);
+                    var el = this.$.geneList.querySelector('pathact-gene-option[name="' + name + '"]');
+                    el.$.input.value = value;
                 }
                 this._saveAttributesToFile();
             },
@@ -941,7 +1046,8 @@
                     if (this.geneList[this.geneMap[this.lastSelectedNode]] != null) {
                         this.koInputValue = this.geneList[this.geneMap[this.lastSelectedNode]].value;
                     } else {
-                        this.koInputValue = this.defaultKoValue;
+                        // this.koInputValue = this.defaultKoValue;
+                        this.koInputValue = parseFloat(v.attributes.exp).toFixed(2);
                     }
 
                     var nvbcr = this.$.networkViewer.getBoundingClientRect();
@@ -1110,7 +1216,7 @@
         <div id="main" class="horizontal layout center">
             <div class="name flex">{{name}}:</div>
             <div class="value">
-                <input class="jso" type="number" max="1" min="0" step="0.1" value="{{value::input}}" />
+                <input class="jso" type="number" max="1" min="0" step="0.05" value="{{value::input}}" />
             </div>
         </div>
     </template>
@@ -1203,7 +1309,7 @@
         <div id="main" class="horizontal layout center">
             <div class="name flex">{{name}}</div>
             <div class="value">
-                <input class="jso" type="number" max="1" min="0" step="0.1" value="{{internalValue::input}}" readonly$="{{isOneDrugSelected}}" />
+                <input id="input" class="jso" type="number" max="1" min="0" step="0.05" value="{{internalValue::input}}" readonly$="{{isOneDrugSelected}}" />
             </div>
             <div hidden="{{!manual}}" class="delete jso-btn" on-click="handleRemove">
                 <i class="fa fa-times"></i>
@@ -1224,6 +1330,7 @@
         properties: {
             name: {
                 type: String,
+                reflectToAttribute: true,
                 notify: true
             },
             value: {
@@ -1262,6 +1369,7 @@
             },
             internalValue: {
                 type: Number,
+                notify: true,
                 observer: 'internalValueChanged',
                 value: 0
             }
