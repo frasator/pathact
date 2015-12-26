@@ -64,12 +64,16 @@
         }
 
         .list,
-        .plist {
+        .plist,
+        #inputGeneList {
             position: relative;
             box-sizing: border-box;
             overflow-y: auto;
             border: 1px solid var(--divider-color);
             background-color: var(--light-primary-color);
+        }
+        #inputGeneList > div {
+            padding: 1px 4px;
         }
 
         .plist > div {
@@ -176,9 +180,12 @@
         }
 
         #reportPanelContainer {
+            box-sizing: border-box;
             width: 100%;
-            height: 100%;
+            height: calc(100% - 60px);
             background-color: #fff !important;
+            overflow-y: scroll;
+            overflow-x: none;
         }
     </style>
     <template>
@@ -225,13 +232,13 @@
                 <div class="horizontal layout center">
                     <label class="jso flex">Pathway viewer:</label>
                     <div class="flex"></div>
-                    <div report-disabled$="{{!reportExists(reportFile)}}" on-click="handleReportButton" class="jso-btn jso-btn-shdw button" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show report</div>
+                    <div report-disabled$="{{!reportExists(reportFile)}}" on-click="handleReportButton" class="jso-btn jso-btn-shdw button" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show last update report</div>
                 </div>
                 <jso-network-viewer id="networkViewer" style="height:calc(100% - 22px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar disable-context-menu on-leftclickvertex="handleNetworkViewerVertexClick"></jso-network-viewer>
             </div>
             <div id="right">
                 <label class="jso">Pathway list:</label>
-                <div id="pathwayList" class="plist" style="height:calc(50% - 23px);">
+                <div id="pathwayList" class="plist" style="height:calc(40% - 23px);">
                     <template is="dom-repeat" items="{{pathwayList}}">
                         <div on-click="handlePathwayClick" data-checked$="{{isPathwaySelected(item, selectedPathway)}}">
                             <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}"></span>
@@ -241,38 +248,48 @@
                     </template>
                 </div>
                 <label class="jso" style="margin-top:5px;">Subpath list:</label>
-                <div id="pathList" class="plist" style="height:calc(50% - 23px);">
+                <div id="pathList" class="plist" style="height:calc(40% - 23px);">
                     <template is="dom-repeat" items="{{pathList}}">
                         <div on-click="handlePathClick" data-checked$="{{isPathSelected(item, selectedPath)}}">
                             <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}"></span>
                             <span data-down$="{{item.down}}" data-downsig$="{{item.downsig}}"></span>
                             <span data-haschanged$="{{item.haschanged}}">{{item.shortname}}</span>
+                        </div>
                     </template>
-                    </div>
                 </div>
-
-                <div id="koControl">
-                    <label class="jso">Activity value:</label>
-                    <input class="jso" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
+                <label class="jso" style="margin-top:5px;">Last update gene list:</label>
+                <div id="inputGeneList" style="height:calc(20% - 23px);">
+                    <template is="dom-repeat" items="{{_inputGeneList}}">
+                        <div>
+                            <span>{{item.gene}}</span> -
+                            <span>{{item.value}}</span>
+                        </div>
+                    </template>
                 </div>
+            </div>
 
-                <jso-panel hidden fixed modal closable id="browserPanel">
-                    <div class="header">
-                        Select expression matrix file...
-                    </div>
-                    <jso-opencga-browser enable-select-ok id="browser" class="container flex" mode="file" on-fileselect="handleBrowserFileSelect" on-ok-click="handleBrowserOkClick" on-file-uploaded="handleBrowserFileUploaded" bioformats="{{bioformats}}" projects="{{projects}}"></jso-opencga-browser>
-                </jso-panel>
+            <div id="koControl">
+                <label class="jso">Activity value:</label>
+                <input class="jso" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
+            </div>
 
-                <jso-panel hidden fixed modal closable id="configureDrugActionsPanel">
-                    <div class="header">
-                        Configure drug action weight
-                    </div>
-                    <div id="drugActionList" class=" list container horizontal layout wrap flex" style="width:650px; padding:7px;">
-                        <template is="dom-repeat" items="{{drugActionList}}">
-                            <pathact-action-option style="width:315px" name="{{item.name}}" value="{{item.value}}" on-change="handleActionWeightChange"></pathact-action-option>
-                        </template>
-                    </div>
-                </jso-panel>
+            <jso-panel hidden fixed modal closable id="browserPanel">
+                <div class="header">
+                    Select expression matrix file...
+                </div>
+                <jso-opencga-browser enable-select-ok id="browser" class="container flex" mode="file" on-fileselect="handleBrowserFileSelect" on-ok-click="handleBrowserOkClick" on-file-uploaded="handleBrowserFileUploaded" bioformats="{{bioformats}}" projects="{{projects}}"></jso-opencga-browser>
+            </jso-panel>
+
+            <jso-panel hidden fixed modal closable id="configureDrugActionsPanel">
+                <div class="header">
+                    Configure drug action weight
+                </div>
+                <div id="drugActionList" class=" list container horizontal layout wrap flex" style="width:650px; padding:7px;">
+                    <template is="dom-repeat" items="{{drugActionList}}">
+                        <pathact-action-option style="width:315px" name="{{item.name}}" value="{{item.value}}" on-change="handleActionWeightChange"></pathact-action-option>
+                    </template>
+                </div>
+            </jso-panel>
         </form>
         <div id="loading" hidden$="{{!loading}}" class="horizontal layout center-justified jso-unselectable">
             <div class="self-center">
@@ -375,6 +392,12 @@
                 reportFile: {
                     type: Object,
                     value: null
+                },
+                _inputGeneList: {
+                    type: Array,
+                    value: function() {
+                        return []
+                    }
                 }
             },
             observers: [
@@ -488,12 +511,13 @@
                 });
             },
             clean: function() {
+                this.set('selectedFile', null);
                 this.set('fileList', null);
                 this.set('pathList', null);
                 this.set('pathwayList', null);
                 this.set('geneList', []);
+                this.set('_inputGeneList', []);
                 this.set('geneMap', {});
-                this.set('selectedFile', null);
                 this.set('selectedPathway', null);
                 this.set('selectedPath', null);
                 this.set('reportFile', null);
@@ -564,12 +588,13 @@
             _selectFile: function(file) {
                 var me = this;
                 if (this.loading == false) {
-                    if (file.attributes.pathact.geneList != null) {
-                        this._loadGeneList(file.attributes.pathact.geneList);
-                        this._loadRelatedDrugList(file.attributes.pathact.relatedDrugList);
-                    }
                     if (file.attributes.pathact.status === "READY") {
+                        this.clean()
                         this.loading = true;
+                        if (file.attributes.pathact.geneList != null) {
+                            this._loadGeneList(file.attributes.pathact.geneList);
+                            this._loadRelatedDrugList(file.attributes.pathact.relatedDrugList);
+                        }
                         this.set('selectedFile', file);
                         this._getJobBean(file.attributes.pathact.jobId, function(job) {
                             var fileIds = job.input.concat(job.output);
@@ -597,6 +622,7 @@
                                         result.set('job', job);
                                         Polymer.dom(me.$.reportPanelContainer).appendChild(result);
                                         me.reportFile = me._resultFileNameMap['report.xml'];
+                                        me._loadInputGenes();
                                     }
                                 });
                             });
@@ -908,6 +934,7 @@
                                             result.set('job', job);
                                             Polymer.dom(me.$.reportPanelContainer).appendChild(result);
                                             me.reportFile = me._resultFileNameMap['report.xml'];
+                                            me._loadInputGenes();
                                         });
                                     }
                                 });
@@ -1180,6 +1207,57 @@
                 this.$.geneSearch.setParseFunction(parse);
                 // this.$.knockoutGenesSearch.setSearchFunction(search);
                 // this.$.knockoutGenesSearch.setParseFunction(parse);
+            },
+            _loadInputGenes: function() {
+                var me = this;
+                this._getFileContent(this._resultFileNameMap['ko.txt'].id, function(content) {
+                    var parsedContent = me._parseTabularFile(content);
+                    me.set('_inputGeneList', parsedContent.data);
+                });
+            },
+            _parseTabularFile: function(textContent) {
+                var lines = textContent.split('\n');
+                if (lines.length > 0) {
+                    var line, fields, field, data = [],
+                        columns = [],
+                        obj;
+                    var firstLine = lines[0].replace('#', '');
+                    fields = firstLine.split('\t');
+                    for (var i = 0; i < fields.length; i++) {
+                        field = fields[i];
+                        field = field.trim();
+                        var name = field.replace(/ /gi, '_');
+                        var width = 150;
+                        if (i === 0) {
+                            width = 400;
+                        }
+                        columns.push({
+                            name: name,
+                            title: name,
+                            width: width
+                        });
+                    }
+
+                    if (columns.length) {
+                        for (var i = 1; i < lines.length; i++) {
+                            line = lines[i];
+                            if (line != '') {
+                                fields = line.split('\t');
+                                obj = {};
+                                for (var j = 0; j < fields.length; j++) {
+                                    field = fields[j].trim();
+                                    column = columns[j];
+                                    obj[column.name] = field;
+                                }
+                                data.push(obj);
+                            }
+                        }
+                    }
+                    return {
+                        columns: columns,
+                        data: data
+                    };
+                }
             }
         });
     </script>
@@ -1436,13 +1514,12 @@
         }
 
         :host[data-checked] > #main {
-            border-color: var(--accent-color);
-            background-color: var(--hover-color);
+            border-color: var(--dark-button-color);
+            background-color: #fff3e7;
         }
 
         #main:hover {
             margin-bottom: 2px;
-            border-color: var(--accent-color);
             background-color: var(--hover-color);
         }
 
