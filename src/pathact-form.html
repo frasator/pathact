@@ -909,11 +909,11 @@
                         this.reportFile = null;
                         this._saveAttributesToFile();
                         console.log(ko_file_content);
-                        var ko_file = new File([ko_file_content], "ko_file.txt");
+                        var ko_file = new Blob([ko_file_content], {type: 'text/plain'});
 
                         var formData = new FormData();
                         formData.append('working_folder', this.selectedFile.attributes.pathact.workingFolderPath);
-                        formData.append('ko_file', ko_file, ko_file.name);
+                        formData.append('ko_file', ko_file, 'ko_file.txt');
 
                         var xhr = new XMLHttpRequest();
                         xhr.open('POST', PATHACT_HOST + '/update', true);
