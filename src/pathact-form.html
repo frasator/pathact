@@ -238,7 +238,7 @@
             </div>
             <div id="right">
                 <label class="jso">Pathway list:</label>
-                <div id="pathwayList" class="plist" style="height:calc(40% - 23px);">
+                <div id="pathwayList" class="plist" style="height:calc(50% - 23px);">
                     <template is="dom-repeat" items="{{pathwayList}}">
                         <div on-click="handlePathwayClick" data-checked$="{{isPathwaySelected(item, selectedPathway)}}">
                             <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}"></span>
@@ -247,8 +247,8 @@
                         </div>
                     </template>
                 </div>
-                <label class="jso" style="margin-top:5px;">Subpath list:</label>
-                <div id="pathList" class="plist" style="height:calc(40% - 23px);">
+                <label class="jso" style="margin-top:5px;">Circuit list:</label>
+                <div id="pathList" class="plist" style="height:calc(50% - 23px);">
                     <template is="dom-repeat" items="{{pathList}}">
                         <div on-click="handlePathClick" data-checked$="{{isPathSelected(item, selectedPath)}}">
                             <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}"></span>
@@ -257,14 +257,16 @@
                         </div>
                     </template>
                 </div>
-                <label class="jso" style="margin-top:5px;">Last update gene list:</label>
-                <div id="inputGeneList" style="height:calc(20% - 23px);">
-                    <template is="dom-repeat" items="{{_inputGeneList}}">
-                        <div>
-                            <span>{{item.gene}}</span> -
-                            <span>{{item.value}}</span>
-                        </div>
-                    </template>
+                <div hidden>
+                    <label class="jso" style="margin-top:5px;">Last update gene list:</label>
+                    <div id="inputGeneList" style="height:calc(20% - 23px);">
+                        <template is="dom-repeat" items="{{_inputGeneList}}">
+                            <div>
+                                <span>{{item.gene}}</span> -
+                                <span>{{item.value}}</span>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </div>
 

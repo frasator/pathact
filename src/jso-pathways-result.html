@@ -65,7 +65,7 @@
         }
 
         .table > jso-table {
-            width: 1000px;
+            width: 800px;
             margin-top: 10px;
             margin-bottom: 20px;
             border: 1px solid var(--divider-color);
@@ -113,6 +113,10 @@
                 });
             },
             processReportFile: function(fileContent) {
+                /**/
+                    fileContent = fileContent.replace('Path impact','Circuit impact');
+                    fileContent = fileContent.replace('Path changes','Circuit changes');
+                /**/
                 var parser = new DOMParser();
                 var reportXML = parser.parseFromString(fileContent, "text/xml");
                 var inputParamsEl = reportXML.querySelector('input-params');
@@ -337,7 +341,7 @@
                         }
                         columns.push({
                             name: name,
-                            title: name,
+                            title: name.replace('path','circuit'),
                             width: width
                         });
                     }
