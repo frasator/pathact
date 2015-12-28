@@ -72,6 +72,7 @@
             border: 1px solid var(--divider-color);
             background-color: var(--light-primary-color);
         }
+
         #inputGeneList > div {
             padding: 1px 4px;
         }
@@ -238,7 +239,7 @@
             </div>
             <div id="right">
                 <label class="jso">Pathway list:</label>
-                <div id="pathwayList" class="plist" style="height:calc(50% - 23px);">
+                <div id="pathwayList" class="plist" style="height:calc(40% - 23px);">
                     <template is="dom-repeat" items="{{pathwayList}}">
                         <div on-click="handlePathwayClick" data-checked$="{{isPathwaySelected(item, selectedPathway)}}">
                             <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}"></span>
@@ -248,7 +249,7 @@
                     </template>
                 </div>
                 <label class="jso" style="margin-top:5px;">Circuit list:</label>
-                <div id="pathList" class="plist" style="height:calc(50% - 23px);">
+                <div id="pathList" class="plist" style="height:calc(40% - 23px);">
                     <template is="dom-repeat" items="{{pathList}}">
                         <div on-click="handlePathClick" data-checked$="{{isPathSelected(item, selectedPath)}}">
                             <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}"></span>
@@ -257,17 +258,17 @@
                         </div>
                     </template>
                 </div>
-                <div hidden>
-                    <label class="jso" style="margin-top:5px;">Last update gene list:</label>
-                    <div id="inputGeneList" style="height:calc(20% - 23px);">
-                        <template is="dom-repeat" items="{{_inputGeneList}}">
-                            <div>
-                                <span>{{item.gene}}</span> -
-                                <span>{{item.value}}</span>
-                            </div>
-                        </template>
-                    </div>
+                <!-- <div hidden> -->
+                <label class="jso" style="margin-top:5px;">Last update gene list:</label>
+                <div id="inputGeneList" style="height:calc(20% - 23px);">
+                    <template is="dom-repeat" items="{{_inputGeneList}}">
+                        <div>
+                            <span>{{item.gene}}</span> -
+                            <span>{{item.value}}</span>
+                        </div>
+                    </template>
                 </div>
+                <!-- </div> -->
             </div>
 
             <div id="koControl">
@@ -740,30 +741,26 @@
                 });
             },
             _updateGeneListVerticesStroke: function() {
-                for (var i = 0; i < this.geneList.length; i++) {
-                    var name = this.geneList[i].name;
-                    for (var j = 0; j < this.$.networkViewer.vertices.length; j++) {
-                        var v = this.$.networkViewer.vertices[j];
+                var v, name;
+                for (var i = 0; i < this.$.networkViewer.vertices.length; i++) {
+                    v = this.$.networkViewer.vertices[i];
+                    v.renderer.set('strokeSize', 2);
+                    v.renderer.set('strokeColor', '#888888');
+
+                    for (var j = 0; j < this.geneList.length; j++) {
+                        name = this.geneList[j].name;
                         if (v.attributes['label'].indexOf(name) != -1) {
                             v.renderer.set('strokeSize', 6);
                             v.renderer.set('strokeColor', '#ee6908');
-                        } else {
-                            v.renderer.set('strokeSize', 2);
-                            v.renderer.set('strokeColor', '#888888');
                         }
                     }
-                }
-                if (Array.isArray(this.relatedGeneList)) {
-                    for (var i = 0; i < this.relatedGeneList.length; i++) {
-                        var name = this.relatedGeneList[i].name;
-                        for (var j = 0; j < this.$.networkViewer.vertices.length; j++) {
-                            var v = this.$.networkViewer.vertices[j];
+
+                    if (Array.isArray(this.relatedGeneList)) {
+                        for (var j = 0; j < this.relatedGeneList.length; j++) {
+                            name = this.relatedGeneList[j].name;
                             if (v.attributes['label'].indexOf(name) != -1) {
                                 v.renderer.set('strokeSize', 6);
                                 v.renderer.set('strokeColor', '#59ee08');
-                            } else {
-                                v.renderer.set('strokeSize', 2);
-                                v.renderer.set('strokeColor', '#888888');
                             }
                         }
                     }
@@ -909,7 +906,9 @@
                         this.reportFile = null;
                         this._saveAttributesToFile();
                         console.log(ko_file_content);
-                        var ko_file = new Blob([ko_file_content], {type: 'text/plain'});
+                        var ko_file = new Blob([ko_file_content], {
+                            type: 'text/plain'
+                        });
 
                         var formData = new FormData();
                         formData.append('working_folder', this.selectedFile.attributes.pathact.workingFolderPath);
