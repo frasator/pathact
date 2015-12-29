@@ -932,8 +932,7 @@
                         var gene = this.geneList[i];
                         var names = gene.name.split(' ');
                         var value;
-                        //TODO isOneDrugSelected
-                        if (this.isOneDrugSelected === true) {
+                        if (Array.isArray(gene.drugactions) && gene.drugactions.length > 0) {
                             var dv = 1;
                             for (var j = 0; j < gene.drugactions.length; j++) {
                                 var da = gene.drugactions[j];
@@ -951,8 +950,7 @@
                     for (var i = 0; i < this.relatedGeneList.length; i++) {
                         var gene = this.relatedGeneList[i];
                         var value;
-                        //TODO isOneDrugSelected
-                        if (this.isOneDrugSelected === true) {
+                        if (Array.isArray(gene.drugactions) && gene.drugactions.length > 0) {
                             var dv = 1;
                             for (var j = 0; j < gene.drugactions.length; j++) {
                                 var da = gene.drugactions[j];
