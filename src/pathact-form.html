@@ -864,56 +864,58 @@
                     var targets = drug.t;
                     for (var j = 0; j < targets.length; j++) {
                         var target = targets[j];
-                        var drugvalue;
-                        if (target.a != "") {
-                            drugvalue = parseFloat(this.drugActionMap[target.a.toLowerCase()].value);
-                        } else {
-                            drugvalue = parseFloat(this.drugActionMap['unknown'].value);
-                        }
-                        var drugaction = {
-                            drug: drug.n,
-                            drugid: drug.i,
-                            action: target.a,
-                            drugvalue: drugvalue
-                        };
-                        if (this.geneMap[target.g] == null) {
-                            var relatedGene;
-                            if (auxGeneMap[target.g] == null) {
-                                relatedGene = {
-                                    name: target.g,
-                                    manual: false,
-                                    drugactions: []
-                                };
-                                relatedGeneList.push(relatedGene);
-                                auxGeneMap[target.g] = relatedGene;
+                        if(target.g != ""){
+                            var drugvalue;
+                            if (target.a != "") {
+                                drugvalue = parseFloat(this.drugActionMap[target.a.toLowerCase()].value);
                             } else {
-                                relatedGene = auxGeneMap[target.g];
+                                drugvalue = parseFloat(this.drugActionMap['unknown'].value);
                             }
-                            relatedGene.drugactions.push(drugaction);
-                        } else {
-                            var pos = this.geneMap[target.g];
-                            var gene = this.geneList[pos];
-                            if (gene.drugactions == null) {
-                                gene.drugactions = [];
-                            }
-                            var found = false;
-                            var updated_drugactions = [];
-                            for (var k = 0; k < gene.drugactions.length; k++) {
-                                var gda = gene.drugactions[k];
-                                for (var l = 0; l < selectedDrugs.length; l++) {
-                                    var sd = selectedDrugs[l];
-                                    if (sd.n == gda.drug) {
-                                        updated_drugactions.push(gda)
+                            var drugaction = {
+                                drug: drug.n,
+                                drugid: drug.i,
+                                action: target.a,
+                                drugvalue: drugvalue
+                            };
+                            if (this.geneMap[target.g] == null) {
+                                var relatedGene;
+                                if (auxGeneMap[target.g] == null) {
+                                    relatedGene = {
+                                        name: target.g,
+                                        manual: false,
+                                        drugactions: []
+                                    };
+                                    relatedGeneList.push(relatedGene);
+                                    auxGeneMap[target.g] = relatedGene;
+                                } else {
+                                    relatedGene = auxGeneMap[target.g];
+                                }
+                                relatedGene.drugactions.push(drugaction);
+                            } else {
+                                var pos = this.geneMap[target.g];
+                                var gene = this.geneList[pos];
+                                if (gene.drugactions == null) {
+                                    gene.drugactions = [];
+                                }
+                                var found = false;
+                                var updated_drugactions = [];
+                                for (var k = 0; k < gene.drugactions.length; k++) {
+                                    var gda = gene.drugactions[k];
+                                    for (var l = 0; l < selectedDrugs.length; l++) {
+                                        var sd = selectedDrugs[l];
+                                        if (sd.n == gda.drug) {
+                                            updated_drugactions.push(gda)
+                                        }
+                                    }
+                                    if (gda.drug == drugaction.drug) {
+                                        found = true;
                                     }
                                 }
-                                if (gda.drug == drugaction.drug) {
-                                    found = true;
+                                if (found === false) {
+                                    updated_drugactions.push(drugaction);
                                 }
+                                this.set('geneList.' + pos + '.drugactions', updated_drugactions);
                             }
-                            if (found === false) {
-                                updated_drugactions.push(drugaction);
-                            }
-                            this.set('geneList.' + pos + '.drugactions', updated_drugactions);
                         }
                     }
                 }
