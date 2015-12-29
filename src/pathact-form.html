@@ -519,8 +519,9 @@
                 this.set('pathList', null);
                 this.set('pathwayList', null);
                 this.set('geneList', []);
-                this.set('_inputGeneList', []);
                 this.set('geneMap', {});
+                this.set('relatedDrugList', []);
+                this.set('_inputGeneList', []);
                 this.set('selectedPathway', null);
                 this.set('selectedPath', null);
                 this.set('reportFile', null);
@@ -592,7 +593,7 @@
                 var me = this;
                 if (this.loading == false) {
                     if (file.attributes.pathact.status === "READY") {
-                        this.clean()
+                        this.clean();
                         this.loading = true;
                         if (file.attributes.pathact.geneList != null) {
                             this._loadGeneList(file.attributes.pathact.geneList);
@@ -819,7 +820,7 @@
                         if (Array.isArray(gene.drugactions)) {
                             for (var k = 0; k < gene.drugactions.length; k++) {
                                 var gda = gene.drugactions[k];
-                                if (newDrugMap[gda.drugid].s === true && newDrugMap[gda.drugid] != null) {
+                                if (newDrugMap[gda.drugid] != null && newDrugMap[gda.drugid].s === true) {
                                     newGeneDrugActions.push(gda);
                                 }
                             }
@@ -830,6 +831,9 @@
 
                     this.set('relatedDrugList', newDrugList);
                     this._processDrugRelatedGenes();
+                }else{
+                    this.set('relatedDrugList', []);
+                    this.set('relatedGeneList', []);
                 }
                 this._updateGeneListVerticesStroke();
             },
@@ -1023,7 +1027,7 @@
                     me._uploadFile(studyId, '', 'pathact_example.txt', content, 'DATAMATRIX_EXPRESSION', function(file) {
                         if (file != null) {
                             me._launchInit(file);
-                        }else{
+                        } else {
                             Utils.msg('Information', "Example file is already loaded.");
                         }
                     });
