@@ -528,6 +528,9 @@
                 this._fileIntervalId = null;
                 this.$.networkViewer.startOver();
                 this.loading = false;
+                for(var key in this._drugToGeneMap){
+                    this._drugToGeneMap[key].s = null;
+                }
             },
             projectsChanged: function() {
                 var me = this;
@@ -1143,6 +1146,7 @@
                         relatedDrug.s = rd.s;
                         relatedDrugList.push(relatedDrug);
                     }
+
                     this.set('relatedDrugList', relatedDrugList);
                     this._processDrugRelatedGenes();
                 }
