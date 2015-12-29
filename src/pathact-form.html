@@ -94,32 +94,33 @@
         }
 
         .plist > div > span[data-haschanged] {
+            font-family: FontAwesome;
+            margin-right: 3px;
             color: #000;
             font-weight: bold;
         }
 
-        .plist > div > span[data-down]:before,
-        .plist > div > span[data-up]:before {
+        .plist > div > span[data-down][data-haschanged]:before,
+        .plist > div > span[data-up][data-haschanged]:before {
             font-family: FontAwesome;
             margin-right: 3px;
             color: #aaa;
         }
 
-        .plist > div > span[data-up]:before {
-            /*content: '\f062';*/
+        .plist > div > span[data-up][data-haschanged]:before {
             content: '\f176';
         }
 
-        .plist > div > span[data-down]:before {
-            /*content: '\f063';*/
+        .plist > div > span[data-down][data-haschanged]:before {
             content: '\f175';
         }
 
-        .plist > div > span[data-upsig]:before {
+        .plist > div > span[data-upsig][data-haschanged]:before {
             color: #cc0000;
         }
 
-        .plist > div > span[data-downsig]:before {
+        .plist > div > span[data-downsig][data-haschanged]:before {
+
             color: #005aa3;
         }
 
@@ -242,8 +243,8 @@
                 <div id="pathwayList" class="plist" style="height:calc(40% - 23px);">
                     <template is="dom-repeat" items="{{pathwayList}}">
                         <div on-click="handlePathwayClick" data-checked$="{{isPathwaySelected(item, selectedPathway)}}">
-                            <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}"></span>
-                            <span data-down$="{{item.down}}" data-downsig$="{{item.downsig}}"></span>
+                            <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}" data-haschanged$="{{item.haschanged}}"></span>
+                            <span data-down$="{{item.down}}" data-downsig$="{{item.downsig}}" data-haschanged$="{{item.haschanged}}"></span>
                             <span data-haschanged$="{{item.haschanged}}">{{item.name}}</span>
                         </div>
                     </template>
@@ -252,8 +253,8 @@
                 <div id="pathList" class="plist" style="height:calc(40% - 23px);">
                     <template is="dom-repeat" items="{{pathList}}">
                         <div on-click="handlePathClick" data-checked$="{{isPathSelected(item, selectedPath)}}">
-                            <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}"></span>
-                            <span data-down$="{{item.down}}" data-downsig$="{{item.downsig}}"></span>
+                            <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}" data-haschanged$="{{item.haschanged}}"></span>
+                            <span data-down$="{{item.down}}" data-downsig$="{{item.downsig}}" data-haschanged$="{{item.haschanged}}"></span>
                             <span data-haschanged$="{{item.haschanged}}">{{item.shortname}}</span>
                         </div>
                     </template>
