@@ -1023,6 +1023,8 @@
                     me._uploadFile(studyId, '', 'pathact_example.txt', content, 'DATAMATRIX_EXPRESSION', function(file) {
                         if (file != null) {
                             me._launchInit(file);
+                        }else{
+                            Utils.msg('Information', "Example file is already loaded.");
                         }
                     });
                 });
