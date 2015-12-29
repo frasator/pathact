@@ -1085,11 +1085,10 @@
                 } else {
                     var position = this.geneMap[name];
                     var key = 'geneList.' + position + '.value';
-                    var key2 = 'geneList.' + position + '.interalValue';
                     this.set(key, value);
-                    this.set(key2, value);
                     var el = this.$.geneList.querySelector('pathact-gene-option[name="' + name + '"]');
-                    el.$.input.value = value;
+                    el.set('value', value);
+                    // el.$.input.value = value;
                 }
                 this._saveAttributesToFile();
             },
