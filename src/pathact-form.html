@@ -120,7 +120,6 @@
         }
 
         .plist > div > span[data-downsig][data-haschanged]:before {
-
             color: #005aa3;
         }
 
@@ -206,17 +205,18 @@
                 <!-- <input type="file" style="position: fixed; top: -100em" id="openInput" on-change="handleOpenInputChange"> -->
 
                 <label class="jso" style="margin-top:20px;"><i class="fa fa-gavel"></i> Gene list:</label>
-                <div id="updateGenesButton" class="jso-btn jso-btn-shdw button" on-click="handleUpdateButton"> <i class="fa fa-refresh"></i>&nbsp;Update </div>
+                <div id="updateGenesButton" class="jso-btn jso-btn-shdw button" on-click="handleUpdateButton"> <i class="fa fa-refresh"></i>&nbsp; Update </div>
+                <!-- <div id="cleanGenesButton" class="jso-btn jso-btn-shdw button" on-click="handleCleanButton"> <i class="fa fa-refresh"></i>&nbsp; Clean </div> -->
                 <jso-search id="geneSearch" placeholder="Search genes..." on-item-select="handleGeneSearch"></jso-search>
                 <div id="geneList" class="list flex">
                     <template is="dom-repeat" items="{{geneList}}">
-                        <pathact-gene-option name="{{item.name}}" value="{{item.value}}" manual="{{item.manual}}" drugactions="{{item.drugactions}}" is-one-drug-selected="{{isOneDrugSelected}}" on-remove="handleRemoveGene" on-change="handleChangeGene"></pathact-gene-option>
+                        <pathact-gene-option name="{{item.name}}" value="{{item.value}}" manual="{{item.manual}}" drugactions="{{item.drugactions}}" on-remove="handleRemoveGene" on-change="handleChangeGene"></pathact-gene-option>
                     </template>
                 </div>
                 <label class="jso"><i class="fa fa-flask"></i> Additional drug targets:</label>
                 <div id="relatedGeneList" class="list flex">
                     <template is="dom-repeat" items="{{relatedGeneList}}">
-                        <pathact-gene-option name="{{item.name}}" manual="{{item.manual}}" drugactions="{{item.drugactions}}" is-one-drug-selected="{{isOneDrugSelected}}"></pathact-gene-option>
+                        <pathact-gene-option name="{{item.name}}" manual="{{item.manual}}" drugactions="{{item.drugactions}}"></pathact-gene-option>
                     </template>
                 </div>
 
@@ -336,11 +336,14 @@
                 drugActionList: {
                     type: Array
                 },
-                drugActionList: {
+                drugActionMap: {
                     type: Object
                 },
                 relatedDrugList: {
-                    type: Array
+                    type: Array,
+                    value: function() {
+                        return []
+                    },
                 },
                 relatedGeneList: {
                     type: Array
@@ -363,6 +366,9 @@
                     value: false
                 },
                 _resultFileNameMap: {
+                    type: Object
+                },
+                _resultFileInitNameMap: {
                     type: Object
                 },
 
@@ -389,10 +395,6 @@
                 lastSelectedNode: {
                     type: Object,
                 },
-                isOneDrugSelected: {
-                    type: Boolean,
-                    value: false
-                },
                 reportFile: {
                     type: Object,
                     value: null
@@ -402,6 +404,9 @@
                     value: function() {
                         return []
                     }
+                },
+                _pathwayInitExpression: {
+                    type: Object,
                 }
             },
             observers: [
@@ -414,13 +419,7 @@
                 if (b.haschanged && !a.haschanged) {
                     return 1;
                 }
-                if (a.sig && !b.sig) {
-                    return -1;
-                }
-                if (b.sig && !a.sig) {
-                    return 1;
-                }
-                return 0;
+                return a.name.localeCompare(b.name)
             },
             _init: function() {
                 var me = this;
@@ -604,11 +603,15 @@
                             var fileIds = job.input.concat(job.output);
                             me._getFilesBeans(fileIds, function(files) {
                                 me._resultFileNameMap = {};
+                                me._resultFileInitNameMap = {};
                                 for (var i = 0; i < files.length; i++) {
                                     var f = files[i];
                                     /*Nya careful!!!*/
                                     if (f.path.indexOf('sifs4CellMaps_init') == -1) {
                                         me._resultFileNameMap[f.name] = f;
+                                    }
+                                    if (f.path.indexOf('sifs4CellMaps_init') != -1) {
+                                        me._resultFileInitNameMap[f.name] = f;
                                     }
                                 }
                                 me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
@@ -706,37 +709,56 @@
                 this.loading = true;
                 this._getFileContent(this._resultFileNameMap[pwid + '.sif'].id, function(sifContent) {
                     me._getFileContent(me._resultFileNameMap[pwid + '.natt'].id, function(nattContent) {
-                        me._getFileContent(me._resultFileNameMap[pwid + '.eatt'].id, function(eattContent) {
-                            me.$.networkViewer.loadSif(sifContent);
-                            me.$.networkViewer.loadNodeAttributes(nattContent, true);
-                            me.$.networkViewer.loadEdgeAttributes(eattContent, true);
+                        me._getFileContent(me._resultFileInitNameMap[pwid + '.natt'].id, function(nattInitContent) {
+                            me._getFileContent(me._resultFileNameMap[pwid + '.eatt'].id, function(eattContent) {
 
-                            // me.$.networkViewer.$.nodeRender.applyDirect('color', 'strokeColor');
-                            me.$.networkViewer.$.nodeRender.applyDirect('exp_col', 'color');
-                            me.$.networkViewer.$.nodeRender.applyDirect('shape', 'shape');
-                            me.$.networkViewer.$.nodeRender.applyDirect('width', 'size');
-                            me.$.networkViewer.$.nodeRender.applyDirect('labelSize', 'labelSize');
+                                //init expression attributes
+                                new AttributeNetworkDataAdapter({
+                                    async: false,
+                                    useFirstLineAsColumnNames: true,
+                                    dataSource: new StringDataSource(nattInitContent),
+                                    handlers: {
+                                        'data:load': function(e) {
+                                            me._pathwayInitExpression = {};
+                                            for (var i = 0; i < e.attributes.length; i++) {
+                                                var att = e.attributes[i];
+                                                me._pathwayInitExpression[att.id] = att.exp;
+                                            }
+                                        }
+                                    }
+                                });
 
-                            me.$.networkViewer.$.edgeRender.applyDirect('color', 'color');
-                            me.$.networkViewer.$.edgeRender.applyDirect('head', 'shape');
-                            /*EXAMPLE*/
-                            // nodeRender.applyVisualSet({
-                            //     attribute: "drugs",
-                            //     displayProperty: "color",
-                            //     enabled: true,
-                            //     matches: matches,
-                            //     parse: "string",
-                            //     type: "categorical"
-                            // });
+                                me.$.networkViewer.loadSif(sifContent);
+                                me.$.networkViewer.loadNodeAttributes(nattContent, true);
+                                me.$.networkViewer.loadEdgeAttributes(eattContent, true);
 
-                            me.$.networkViewer.setVertexDefaultPositionX('X', true, false);
-                            me.$.networkViewer.setVertexDefaultPositionY('Y', true, true);
-                            // me.$.networkViewer.setVertexDefaultLabelAttribute('genesList');
-                            me.$.networkViewer.setVertexDefaultLabelAttribute('label');
+                                // me.$.networkViewer.$.nodeRender.applyDirect('color', 'strokeColor');
+                                me.$.networkViewer.$.nodeRender.applyDirect('exp_col', 'color');
+                                me.$.networkViewer.$.nodeRender.applyDirect('shape', 'shape');
+                                me.$.networkViewer.$.nodeRender.applyDirect('width', 'size');
+                                me.$.networkViewer.$.nodeRender.applyDirect('labelSize', 'labelSize');
 
-                            me._updateGeneListVerticesStroke();
+                                me.$.networkViewer.$.edgeRender.applyDirect('color', 'color');
+                                me.$.networkViewer.$.edgeRender.applyDirect('head', 'shape');
+                                /*EXAMPLE*/
+                                // nodeRender.applyVisualSet({
+                                //     attribute: "drugs",
+                                //     displayProperty: "color",
+                                //     enabled: true,
+                                //     matches: matches,
+                                //     parse: "string",
+                                //     type: "categorical"
+                                // });
 
-                            me.loading = false;
+                                me.$.networkViewer.setVertexDefaultPositionX('X', true, false);
+                                me.$.networkViewer.setVertexDefaultPositionY('Y', true, true);
+                                // me.$.networkViewer.setVertexDefaultLabelAttribute('genesList');
+                                me.$.networkViewer.setVertexDefaultLabelAttribute('label');
+
+                                me._updateGeneListVerticesStroke();
+
+                                me.loading = false;
+                            });
                         });
                     });
                 });
@@ -748,14 +770,6 @@
                     v.renderer.set('strokeSize', 2);
                     v.renderer.set('strokeColor', '#888888');
 
-                    for (var j = 0; j < this.geneList.length; j++) {
-                        name = this.geneList[j].name;
-                        if (v.attributes['label'].indexOf(name) != -1) {
-                            v.renderer.set('strokeSize', 6);
-                            v.renderer.set('strokeColor', '#ee6908');
-                        }
-                    }
-
                     if (Array.isArray(this.relatedGeneList)) {
                         for (var j = 0; j < this.relatedGeneList.length; j++) {
                             name = this.relatedGeneList[j].name;
@@ -765,47 +779,81 @@
                             }
                         }
                     }
+
+                    for (var j = 0; j < this.geneList.length; j++) {
+                        name = this.geneList[j].name;
+                        if (v.attributes['label'].indexOf(name) != -1) {
+                            v.renderer.set('strokeSize', 6);
+                            v.renderer.set('strokeColor', '#ee6908');
+                        }
+                    }
                 }
             },
             geneListchanged: function() {
                 this._rebuildGeneMap();
-                var relatedDrugList = [];
-                for (var i = 0; i < this.geneList.length; i++) {
-                    var g = this.geneList[i];
-                    var drugIds = this._geneToDrugMap[g.name];
-                    if (Array.isArray(drugIds)) {
-                        for (var j = 0; j < drugIds.length; j++) {
-                            var drugId = drugIds[j];
-                            var d = this._drugToGeneMap[drugId];
-                            d.s = false;
-                            relatedDrugList.push(d);
+                this._updateDrugList();
+            },
+            _updateDrugList: function() {
+                if (this.geneList.length > 0) {
+                    var newDrugList = [];
+                    var newDrugMap = {};
+                    for (var i = 0; i < this.geneList.length; i++) {
+                        var g = this.geneList[i];
+                        var drugIds = this._geneToDrugMap[g.name];
+                        if (Array.isArray(drugIds)) {
+                            for (var j = 0; j < drugIds.length; j++) {
+                                var drugId = drugIds[j];
+                                var d = this._drugToGeneMap[drugId];
+                                if (newDrugMap[d.i] == null) {
+                                    // d.s = false;
+                                    newDrugMap[d.i] = d;
+                                    newDrugList.push(d);
+                                }
+                            }
                         }
                     }
+
+                    for (var i = 0; i < this.geneList.length; i++) {
+                        var gene = this.geneList[i];
+                        var newGeneDrugActions = [];
+                        if (Array.isArray(gene.drugactions)) {
+                            for (var k = 0; k < gene.drugactions.length; k++) {
+                                var gda = gene.drugactions[k];
+                                if (newDrugMap[gda.drugid].s === true && newDrugMap[gda.drugid] != null) {
+                                    newGeneDrugActions.push(gda);
+                                }
+                            }
+                            var pos = this.geneMap[gene.name];
+                            this.set('geneList.' + pos + '.drugactions', newGeneDrugActions);
+                        }
+                    }
+
+                    this.set('relatedDrugList', newDrugList);
+                    this._processDrugRelatedGenes();
                 }
-                this.set('relatedDrugList', relatedDrugList);
-                this._processDrugRelatedGenes();
-                // this._updateGeneListVerticesStroke();
+                this._updateGeneListVerticesStroke();
             },
             handleDrugSelectedChange: function(e) {
-                this._processDrugRelatedGenes();
+                this._drugToGeneMap[e.model.item.i] = e.model.item;
+                this._updateDrugList();
             },
             _processDrugRelatedGenes: function() {
                 this._saveAttributesToFile();
-                var isOneDrugSelected = false;
                 var relatedGeneList = [];
                 var auxGeneMap = {};
 
                 var selectedDrugs = [];
+                var selectedDrugsMap = {};
                 for (var i = 0; i < this.relatedDrugList.length; i++) {
                     var drug = this.relatedDrugList[i];
                     if (drug.s === true) {
                         selectedDrugs.push(drug);
+                        selectedDrugsMap[drug.i] = drug;
                     }
                 }
 
                 for (var i = 0; i < selectedDrugs.length; i++) {
                     var drug = selectedDrugs[i];
-                    isOneDrugSelected = true;
                     var targets = drug.t;
                     for (var j = 0; j < targets.length; j++) {
                         var target = targets[j];
@@ -817,6 +865,7 @@
                         }
                         var drugaction = {
                             drug: drug.n,
+                            drugid: drug.i,
                             action: target.a,
                             drugvalue: drugvalue
                         };
@@ -861,8 +910,10 @@
                         }
                     }
                 }
-                this.set('isOneDrugSelected', isOneDrugSelected);
                 this.set('relatedGeneList', relatedGeneList);
+            },
+            handleCleanButton: function(e) {
+                // this._updateGenes('SOS1\t0.69');
             },
             handleUpdateButton: function(e) {
                 if (this.loading == false) {
@@ -872,6 +923,7 @@
                         var gene = this.geneList[i];
                         var names = gene.name.split(' ');
                         var value;
+                        //TODO isOneDrugSelected
                         if (this.isOneDrugSelected === true) {
                             var dv = 1;
                             for (var j = 0; j < gene.drugactions.length; j++) {
@@ -890,6 +942,7 @@
                     for (var i = 0; i < this.relatedGeneList.length; i++) {
                         var gene = this.relatedGeneList[i];
                         var value;
+                        //TODO isOneDrugSelected
                         if (this.isOneDrugSelected === true) {
                             var dv = 1;
                             for (var j = 0; j < gene.drugactions.length; j++) {
@@ -902,49 +955,55 @@
                         }
                         ko_file_lines.push(gene.name + "\t" + value);
                     }
-                    ko_file_content = ko_file_lines.join('\n') + '\n';
+                    var ko_file_content = ko_file_lines.join('\n') + '\n';
                     if (ko_file_content.trim() != "") {
-                        this.reportFile = null;
-                        this._saveAttributesToFile();
-                        console.log(ko_file_content);
-                        var ko_file = new Blob([ko_file_content], {
-                            type: 'text/plain'
-                        });
-
-                        var formData = new FormData();
-                        formData.append('working_folder', this.selectedFile.attributes.pathact.workingFolderPath);
-                        formData.append('ko_file', ko_file, 'ko_file.txt');
-
-                        var xhr = new XMLHttpRequest();
-                        xhr.open('POST', PATHACT_HOST + '/update', true);
-                        xhr.onload = function(e) {
-                            var response = JSON.parse(this.responseText);
-                            me.loading = false;
-                            me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
-                                me._loadPathwayList(JSON.parse(content));
-                                me.loading = false;
-
-                                me._getFileContent(me._resultFileNameMap['report.xml'].id, function(content) {
-                                    console.log(content);
-                                    if (content.indexOf('ko_update') != -1) {
-                                        me._getJobBean(me.selectedFile.attributes.pathact.jobId, function(job) {
-                                            var result = document.createElement('jso-' + 'pathways' + '-result');
-                                            var el = me.$.reportPanelContainer.querySelector('jso-pathways-result');
-                                            if (el != null) {
-                                                Polymer.dom(me.$.reportPanelContainer).removeChild(el);
-                                            }
-                                            result.set('job', job);
-                                            Polymer.dom(me.$.reportPanelContainer).appendChild(result);
-                                            me.reportFile = me._resultFileNameMap['report.xml'];
-                                            me._loadInputGenes();
-                                        });
-                                    }
-                                });
-                            });
-                        };
-                        this.loading = true;
-                        xhr.send(formData);
+                        this._updateGenes(ko_file_content);
                     }
+                }
+            },
+            _updateGenes: function(ko_file_content) {
+                var me = this;
+                if (this.loading == false) {
+                    this.reportFile = null;
+                    this._saveAttributesToFile();
+                    console.log(ko_file_content);
+                    var ko_file = new Blob([ko_file_content], {
+                        type: 'text/plain'
+                    });
+
+                    var formData = new FormData();
+                    formData.append('working_folder', this.selectedFile.attributes.pathact.workingFolderPath);
+                    formData.append('ko_file', ko_file, 'ko_file.txt');
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', PATHACT_HOST + '/update', true);
+                    xhr.onload = function(e) {
+                        var response = JSON.parse(this.responseText);
+                        me.loading = false;
+                        me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
+                            me._loadPathwayList(JSON.parse(content));
+                            me.loading = false;
+
+                            me._getFileContent(me._resultFileNameMap['report.xml'].id, function(content) {
+                                console.log(content);
+                                if (content.indexOf('ko_update') != -1) {
+                                    me._getJobBean(me.selectedFile.attributes.pathact.jobId, function(job) {
+                                        var result = document.createElement('jso-' + 'pathways' + '-result');
+                                        var el = me.$.reportPanelContainer.querySelector('jso-pathways-result');
+                                        if (el != null) {
+                                            Polymer.dom(me.$.reportPanelContainer).removeChild(el);
+                                        }
+                                        result.set('job', job);
+                                        Polymer.dom(me.$.reportPanelContainer).appendChild(result);
+                                        me.reportFile = me._resultFileNameMap['report.xml'];
+                                        me._loadInputGenes();
+                                    });
+                                }
+                            });
+                        });
+                    };
+                    this.loading = true;
+                    xhr.send(formData);
                 }
             },
 
@@ -1006,7 +1065,7 @@
             },
             handlekoControlChange: function(e) {
                 if (this.lastSelectedNode != null) {
-                    this._addGene(this.lastSelectedNode, e.currentTarget.value, true);
+                    this._addGene(this.lastSelectedNode, parseFloat(e.currentTarget.value), true);
                 }
             },
             _addGene: function(name, value, manual) {
@@ -1050,7 +1109,18 @@
                 if (this.selectedFile != null) {
                     var attr = this.selectedFile.attributes.pathact;
                     attr.geneList = this.geneList;
-                    attr.relatedDrugList = this.relatedDrugList;
+                    if (this.geneList.length === 0) {
+                        this.set('relatedDrugList', []);
+                    }
+                    var relatedDrugListToSave = [];
+                    for (var i = 0; i < this.relatedDrugList.length; i++) {
+                        var rd = this.relatedDrugList[i];
+                        relatedDrugListToSave.push({
+                            i: rd.i,
+                            s: rd.s
+                        });
+                    }
+                    attr.relatedDrugList = relatedDrugListToSave;
                     this._updateFileAttributes(this.selectedFile.id, {
                         pathact: attr
                     }, function() {});
@@ -1060,8 +1130,17 @@
                 this.set('geneList', list);
             },
             _loadRelatedDrugList: function(list) {
-                this.set('relatedDrugList', list);
-                this._processDrugRelatedGenes();
+                if (list != null) {
+                    var relatedDrugList = [];
+                    for (var i = 0; i < list.length; i++) {
+                        var rd = list[i];
+                        var relatedDrug = this._drugToGeneMap[rd.i];
+                        relatedDrug.s = rd.s;
+                        relatedDrugList.push(relatedDrug);
+                    }
+                    this.set('relatedDrugList', relatedDrugList);
+                    this._processDrugRelatedGenes();
+                }
             },
             handleBrowserOkClick: function(e) {},
             handleBrowserFileSelect: function(e) {
@@ -1075,8 +1154,7 @@
                     if (this.geneList[this.geneMap[this.lastSelectedNode]] != null) {
                         this.koInputValue = this.geneList[this.geneMap[this.lastSelectedNode]].value;
                     } else {
-                        // this.koInputValue = this.defaultKoValue;
-                        this.koInputValue = parseFloat(v.attributes.exp).toFixed(2);
+                        this.koInputValue = parseFloat(this._pathwayInitExpression[v.id]).toFixed(2);
                     }
 
                     var nvbcr = this.$.networkViewer.getBoundingClientRect();
@@ -1350,7 +1428,7 @@
         }
 
         .value {
-            width: 60px;
+            width: 80px;
         }
 
         .delete {
@@ -1389,7 +1467,7 @@
         <div id="main" class="horizontal layout center">
             <div class="name flex">{{name}}</div>
             <div class="value">
-                <input id="input" class="jso" type="number" max="1" min="0" step="0.05" value="{{internalValue::input}}" readonly$="{{isOneDrugSelected}}" />
+                <input id="input" class="jso" type="number" max="1" min="0" step="0.05" value="{{internalValue::input}}" readonly$="{{checkAtLeastOneDrugAction(drugactions)}}" />
             </div>
             <div hidden="{{!manual}}" class="delete jso-btn" on-click="handleRemove">
                 <i class="fa fa-times"></i>
@@ -1397,7 +1475,7 @@
         </div>
         <div class="horizontal layout wrap">
             <template is="dom-repeat" items="{{drugactions}}">
-                <div class="drugaction" hidden$="{{!isOneDrugSelected}}">
+                <div class="drugaction" hidden$="{{!checkAtLeastOneDrugAction(drugactions)}}">
                     <i class="fa fa-flask"></i> {{item.drug}} <i hidden$="{{!existsAction(item.action)}}" class="fa fa-flash"></i> {{item.action}}
                 </div>
             </template>
@@ -1413,18 +1491,17 @@
                 reflectToAttribute: true,
                 notify: true
             },
+            manual: {
+                type: Boolean,
+                reflectToAttribute: true,
+                value: false,
+                observer: 'manualChanged'
+            },
             value: {
-                type: String,
+                type: Number,
                 notify: true,
-                value: ''
-            },
-            drug: {
-                type: String,
-                notify: true
-            },
-            action: {
-                type: String,
-                notify: true
+                value: -1,
+                observer: 'valueChanged'
             },
             drugactions: {
                 type: Array,
@@ -1433,20 +1510,6 @@
                 },
                 observer: 'drugactionsChanged'
             },
-            drugvalue: {
-                type: String,
-                notify: true,
-                value: ''
-            },
-            manual: {
-                type: Boolean,
-                reflectToAttribute: true,
-                value: false
-            },
-            isOneDrugSelected: {
-                type: Boolean,
-                value: false
-            },
             internalValue: {
                 type: Number,
                 notify: true,
@@ -1454,9 +1517,6 @@
                 value: 0
             }
         },
-        observers: [
-            'updateValue(isOneDrugSelected, manual)'
-        ],
         handleRemove: function() {
             this.fire('remove', this.name);
         },
@@ -1464,38 +1524,39 @@
             this.fire('changed', e.currentTarget.value);
         },
         internalValueChanged: function(neo, old) {
-            if (this.isOneDrugSelected === false) {
+            if (this.drugactions == null || this.drugactions.length === 0) {
                 this.value = this.internalValue;
             }
             this.fire('changed', this.internalValue);
         },
-        updateValue: function(isOneDrugSelected, manual) {
-            if (isOneDrugSelected === true) {
-                var dv = this.recalculateInternalValue();
-                this.set('internalValue', dv);
-                return;
-            } else {
-                this.action = '';
-                this.drug = '';
-            }
-            this.set('internalValue', this.value);
-        },
         existsAction: function(a) {
             return a != null && a !== '';
         },
-        drugactionsChanged: function() {
-            if (this.isOneDrugSelected === true) {
-                var dv = this.recalculateInternalValue();
-                this.set('internalValue', dv);
-            }
+        checkAtLeastOneDrugAction: function(drugactions) {
+            return Array.isArray(drugactions) && drugactions.length > 0;
+        },
+        valueChanged: function(neo, old) {
+            this.recalculateInternalValue();
+        },
+        manualChanged: function(neo, old) {
+            this.recalculateInternalValue();
+        },
+        drugactionsChanged: function(neo, old) {
+            this.recalculateInternalValue();
         },
         recalculateInternalValue: function() {
-            var dv = 1;
-            for (var i = 0; i < this.drugactions.length; i++) {
-                var da = this.drugactions[i];
-                dv *= da.drugvalue;
+            var v;
+            if (Array.isArray(this.drugactions) && this.drugactions.length > 0) {
+                var dv = 1;
+                for (var i = 0; i < this.drugactions.length; i++) {
+                    var da = this.drugactions[i];
+                    dv *= da.drugvalue;
+                }
+                v = dv;
+            } else {
+                v = this.value;
             }
-            return dv;
+            this.set('internalValue', v);
         }
     });
 </script>

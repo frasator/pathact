@@ -174,6 +174,9 @@
                 <a href="http://pathact.babelomics.org/doc" target="_blank">
                     <i class="fa fa-book"></i> &nbsp; Documentation
                 </a>
+                <div on-mousedown="handleExample">
+                    <i class="fa fa-lightbulb-o"></i> &nbsp; Run example
+                </div>
             </jso-help-menu>
         </jso-opencga-header>
 
@@ -212,6 +215,11 @@
                 },
                 networkViewer: {
                     type: Object
+                },
+                projects: {
+                    type: Array,
+                    notify: true,
+                    observer: 'projectsChanged'
                 }
             },
             ready: function() {
@@ -244,9 +252,9 @@
                 this.setMenu('pathact');
             },
             handleLogout: function() {
+                this.$.pathactForm.clean();
                 this.$.home.isLogged = false;
                 this.setMenu('home');
-                this.$.pathactForm.clean();
             },
             handleUserNeedRefresh: function() {
                 this.$.jsoHeader.getUserInfo(true);
@@ -256,6 +264,31 @@
                     this.setMenu('pathact');
                 } else {
                     this.$.jsoHeader.anonymousSign();
+                }
+            },
+
+            /**/
+            handleExample: function(e) {
+                if (this.$.jsoHeader.isLogged != true) {
+                    this._lastExampleRequest = true;
+                    this.$.jsoHeader.anonymousSign();
+                } else {
+                    this.runExample();
+                }
+            },
+            runExample: function() {
+                this.async(function() {
+                    this.$.pathactForm.handleLoadExample();
+                }, 100);
+            },
+            projectsChanged: function(neo, old) {
+                if (this.$.jsoHeader.isLogged == true) {
+                    if (neo.length > 0) {
+                        if (this._lastExampleRequest != null) {
+                            this.runExample();
+                            this._lastExampleRequest = null;
+                        }
+                    }
                 }
             }
         });
