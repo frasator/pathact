@@ -867,7 +867,9 @@
                         if(target.g != ""){
                             var drugvalue;
                             if (target.a != "") {
-                                drugvalue = parseFloat(this.drugActionMap[target.a.toLowerCase()].value);
+                                // check action field contains more than one action names separated by comma.
+                                var actionSplit = target.a.split(',');
+                                drugvalue = parseFloat(this.drugActionMap[actionSplit[0].trim().toLowerCase()].value);
                             } else {
                                 drugvalue = parseFloat(this.drugActionMap['unknown'].value);
                             }
