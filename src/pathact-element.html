@@ -11,11 +11,11 @@
 <link rel="import" href="../lib/jsorolla/src/lib/components/opencga/files/jso-opencga-browser.html">
 <link rel="import" href="../lib/jsorolla/src/lib/components/opencga/files/jso-opencga-job-browser.html">
 
+<link rel="import" href="pathact-viewer.html">
 <link rel="import" href="pathact-form.html">
 <link rel="import" href="jso-pathways-result.html">
 
 <link rel="import" href="pathact-home.html">
-
 
 <dom-module id="pathact-element">
     <style>
@@ -91,41 +91,45 @@
             overflow-y: auto;
         }
 
+        pathact-viewer {
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
         pathact-form {
             height: calc(100vh - 60px);
             overflow-y: auto;
         }
     </style>
     <template>
-        <div class="content" menu-option="job">
-            <jso-job-result id="jobResult" jobItem="{{jobItem}}" on-job-close="handleCloseJobResult" network-viewer="{{networkViewer}}" selected-option="{{selectedOption}}">
-            </jso-job-result>
-            <!--<jso-job-no-ready hidden?="{{selectedOption != 'jobNoReady' }}" jobItem="{{jobItem}}"></jso-job-no-ready>-->
-        </div>
-
-
-        <div class="content" menu-option="home,job,pathact">
-            <!-- <jso-panel id="browserPanel" hidden collapsible movable closable on-hidden="handlePanelHidden">
+        <div class="content" menu-option="home,start,pathact">
+            <jso-panel hidden fixed modal closable id="configureDrugActionsPanel" on-hidden="handlePanelHidden">
                 <div class="header">
-                    <i class="fa fa-cloud"></i>&nbsp; Browse my data
+                    Configure drug action weight
                 </div>
-                <jso-opencga-browser id="browser" class="container flex" on-fileselect="handleFileSelect" bioformats="{{bioformats}}" projects="{{projects}}" on-need-refresh="handleUserNeedRefresh">
-                </jso-opencga-browser>
+                <div id="drugActionList" class="container flex" style="width:650px; padding:7px;">
+                    <label class="jso">Configure fold change:</label>
+                    <br>
+                    <div style="width:200px">
+                        <input id="foldChangeInput" class="jso" type="number" step="0.1" min="0" value="{{foldChange::input}}" on-change="handleFoldChange">
+                    </div>
+                    <br>
+                    <label class="jso">Configure drug action weight:</label>
+                    <br>
+                    <div class="list horizontal layout wrap">
+                        <template is="dom-repeat" items="{{drugActionList}}">
+                            <pathact-action-option style="width:315px" name="{{item.name}}" value="{{item.value}}" on-change="handleActionWeightChange"></pathact-action-option>
+                        </template>
+                    </div>
+                </div>
             </jso-panel>
-
-            <jso-panel id="jobsPanel" hidden collapsible movable closable on-hidden="handlePanelHidden">
-                <div class="header">
-                    <i class="fa fa-rocket"></i>&nbsp; Browse jobs
-                </div>
-                <div class="container flex">
-                    <jso-opencga-job-browser id="jobrowser" no-relaunch on-jobselect="handleJobSelect" allowed-tools="{{allowedTools}}" projects="{{projects}}" on-need-refresh="handleUserNeedRefresh">
-                    </jso-opencga-job-browser>
-                </div>
-            </jso-panel> -->
         </div>
 
         <div class="content" menu-option="pathact">
-            <pathact-form id="pathactForm" selectedOption="{{selectedOption}}" bioformats="{{bioformats}}" projects="{{projects}}" on-job-launched="handleJobLaunched"></pathact-form>
+            <pathact-viewer id="pathactViewer" drug-action-list="{{drugActionList}}" drug-action-map="{{drugActionMap}}" fold-change="{{foldChange}}" on-goback="handleViewerGoBack"></pathact-viewer>
+        </div>
+        <div class="content" menu-option="start">
+            <pathact-form id="pathactForm" selectedOption="{{selectedOption}}" bioformats="{{bioformats}}" projects="{{projects}}" allowed-tools="{{allowedTools}}" on-jobselect="handleJobSelect"></pathact-form>
         </div>
 
         <div class="content" menu-option="home">
@@ -148,7 +152,11 @@
             </span>
 
             <div id="menu" class="menu horizontal layout flex">
-                <!-- <div class="flex"></div> -->
+                <div class="flex"></div>
+                <div show-on-login title="Settings" class="option" on-click="handleLoggedOnlyMenuPanel" data-panel="configureDrugActionsPanel">
+                    <i class="fa fa-sliders"></i>
+                    <span class="option-text">Settings</span>
+                </div>
                 <!-- <div style="margin-left:4vw;"></div>
                 <div title="Open Pathiways form" class="option" on-click="handleMenuOption" data-option="home">
                     <i class="fa fa-magic"></i>
@@ -220,10 +228,77 @@
                     type: Array,
                     notify: true,
                     observer: 'projectsChanged'
+                },
+                drugActionList: {
+                    type: Array,
+                    notify: true
+                },
+                drugActionMap: {
+                    type: Object,
+                    notify: true
+                },
+                foldChange: {
+                    type: Number
                 }
             },
             ready: function() {
                 var me = this;
+                this.checkShowMenuOnLogin();
+
+                var fc = localStorage.getItem("pathact_foldchange");
+                if (fc == null) {
+                    this.set('foldChange', 2);
+                    localStorage.setItem("pathact_foldchange", this.foldChange);
+                } else {
+                    this.set('foldChange', parseFloat(fc));
+                }
+
+                var localActions = localStorage.getItem("pathact_actions");
+                if (localActions == null) {
+                    this._openRemoteFile('./drug-actions.json', function(content) {
+                        var allActions = JSON.parse(content);
+                        var nameMap = {};
+                        var actions = [];
+                        var actionsMap = {};
+                        for (var i = 0; i < allActions.length; i++) {
+                            var a = allActions[i];
+                            var n = a.name.toLowerCase();
+                            if (nameMap[n] !== true) {
+                                nameMap[n] = true;
+                                var obj = {
+                                    name: a.name,
+                                    value: a.value
+                                };
+                                actions.push(obj);
+                                actionsMap[n] = obj;
+                            }
+                        }
+                        me.set('drugActionList', actions);
+                        me.set('drugActionMap', actionsMap);
+                        localStorage.setItem("pathact_actions", JSON.stringify(actions));
+                        localStorage.setItem("pathact_actionsmap", JSON.stringify(actionsMap));
+                    });
+                } else {
+                    var actions = JSON.parse(localActions);
+                    var actionsMap = JSON.parse(localStorage.getItem("pathact_actionsmap"));
+                    this.set('drugActionList', actions);
+                    this.set('drugActionMap', actionsMap);
+                }
+            },
+            handleActionWeightChange: function() {
+                localStorage.setItem("pathact_actions", JSON.stringify(this.drugActionList));
+                var actionsMap = {};
+                for (var i = 0; i < this.drugActionList.length; i++) {
+                    var a = this.drugActionList[i];
+                    actionsMap[a.name] = a;
+                }
+                localStorage.setItem("pathact_actionsmap", JSON.stringify(actionsMap));
+                this.set('drugActionMap', actionsMap);
+                this.$.pathactViewer._processDrugRelatedGenes();
+            },
+            handleFoldChange: function() {
+                var fc = localStorage.setItem("pathact_foldchange", this.$.foldChangeInput.value);
+                this.set('foldChange', this.$.foldChangeInput.value);
             },
             handleFileSelect: function(e) {
                 console.log("file");
@@ -234,8 +309,15 @@
             handleJobSelect: function(e) {
                 var job = e.detail;
                 if (job && job.status === 'READY') {
-                    this.set('selectedOption', 'job');
-                    this.$.jobResult.set('jobItem', e.detail);
+                    if (this.$.pathactViewer.jobItem != null) {
+                        if (this.$.pathactViewer.jobItem.id !== job.id) {
+                            this.$.pathactViewer.set('jobItem', job);
+                        }
+                        this.set('selectedOption', 'pathact');
+                    } else {
+                        this.$.pathactViewer.set('jobItem', job);
+                        this.set('selectedOption', 'pathact');
+                    }
                 }
             },
             handleCloseJobResult: function(e) {
@@ -249,22 +331,27 @@
                 }
 
                 this.$.home.isLogged = true;
-                this.setMenu('pathact');
+                this.setMenu('start');
+                this.checkShowMenuOnLogin();
             },
             handleLogout: function() {
-                this.$.pathactForm.clean();
+                // this.$.pathactViewer.clean();
                 this.$.home.isLogged = false;
                 this.setMenu('home');
+                this.checkShowMenuOnLogin();
             },
             handleUserNeedRefresh: function() {
                 this.$.jsoHeader.getUserInfo(true);
             },
             handleHomeStart: function() {
                 if (this.$.jsoHeader.isLogged == true) {
-                    this.setMenu('pathact');
+                    this.setMenu('start');
                 } else {
                     this.$.jsoHeader.anonymousSign();
                 }
+            },
+            handleViewerGoBack: function() {
+                this.handleHomeStart();
             },
 
             /**/
@@ -278,7 +365,7 @@
             },
             runExample: function() {
                 this.async(function() {
-                    this.$.pathactForm.handleLoadExample();
+                    // this.$.pathactViewer.handleLoadExample();
                 }, 100);
             },
             projectsChanged: function(neo, old) {

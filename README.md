@@ -1,11 +1,11 @@
-PATHiKO
-===========
+PathAct
+========
 
 
 ## Download code
 ```bash
-git clone https://github.com/babelomics/pathiko.git
-cd pathiko/
+git clone https://github.com/babelomics/pathact.git
+cd pathact/
 git submodule update --init
 ```
 
@@ -13,7 +13,7 @@ git submodule update --init
 ## Compiling CSS and JavaScript
 
 ```bash
-cd pathiko/
+cd pathact/
 ```
 
 ### Install Node

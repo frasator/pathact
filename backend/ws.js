@@ -61,6 +61,9 @@ if (cluster.isMaster) {
     }, {
         name: 'working_folder',
         maxCount: 1
+    },{
+        name: 'fold_change',
+        maxCount: 1
     }];
 
     // Add a basic route – index page
@@ -74,6 +77,7 @@ if (cluster.isMaster) {
         var args = [];
         args.push('--ko_file ' + req.files.ko_file[0].path);
         args.push('--working_folder ' + req.body.working_folder);
+        args.push('--fold_change ' + req.body.fold_change);
         console.log(args);
         var command = 'Rscript ' + BASE_PATH + '/prettyways/ko_cli_update.r ' + args.join(' ');
 

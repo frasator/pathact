@@ -1,9 +1,9 @@
 {
-  "name": "pathiko",
+  "name": "pathact",
   "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/babelomics/pathiko.git"
+    "url": "https://github.com/babelomics/pathact.git"
   },
   "scripts": {
     "build": "./build.sh"
