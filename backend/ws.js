@@ -61,7 +61,7 @@ if (cluster.isMaster) {
     }, {
         name: 'working_folder',
         maxCount: 1
-    },{
+    }, {
         name: 'fold_change',
         maxCount: 1
     }];
@@ -80,6 +80,40 @@ if (cluster.isMaster) {
         args.push('--fold_change ' + req.body.fold_change);
         console.log(args);
         var command = 'Rscript ' + BASE_PATH + '/prettyways/ko_cli_update.r ' + args.join(' ');
+
+        console.log('+++++++')
+        console.log(command)
+        console.log('+++++++')
+
+        exec(command, function (error, stdout, stderr) {
+            console.log('stdout: ' + stdout);
+            console.log('stderr: ' + stderr);
+
+            res.setHeader('Content-Type', 'application/json');
+            var response = {
+                stdout: stdout,
+                stderr: stderr
+            };
+            res.send(response);
+
+            if (error !== null) {
+                var msg = 'exec error: ' + error;
+                console.log(msg);
+                res.send({
+                    error: msg
+                })
+            }
+        });
+    });
+
+    app.get('/pathact/clear', function (req, res, next) {
+        var folder = req.query.working_folder;
+        var commands = [
+            'cp ' + folder + 'sifs4CellMaps_init/* ' + folder + 'sifs4CellMaps/',
+            'cp ' + folder + 'sifs4CellMaps_init/path_info.json ' + folder,
+            'cp /dev/null ' + folder + 'ko.txt'
+        ];
+        var command = commands.join(' && ');
 
         console.log('+++++++')
         console.log(command)

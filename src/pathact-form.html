@@ -187,7 +187,7 @@
                 return file != null;
             },
             clean: function() {
-
+                this.$.nameInput.value = '';
             },
             /**/
             handleOpenBrowser: function() {
@@ -268,7 +268,7 @@
                 split.pop();
                 this._createFolder(studyId, split.join('/'), folderName, function(folder) {
                     me._launchpathactInit(studyId, file, folder, jobName, function(job) {
-
+                        me.clean();
                     });
                 });
             },

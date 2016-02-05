@@ -136,6 +136,10 @@
             background-color: var(--light-button-color) !important;
         }
 
+        #clearButton {
+            margin-left: 5px;
+        }
+
         #backButton {
             width: 100px;
         }
@@ -179,8 +183,8 @@
 
         #reportPanel {
             position: fixed;
-            height: 100%;
-            width: 100%;
+            height: 80%;
+            width: 80%;
             top: 60px;
             left: 0;
         }
@@ -188,7 +192,7 @@
         #reportPanelContainer {
             box-sizing: border-box;
             width: 100%;
-            height: calc(100% - 60px);
+            /*height: calc(100% - 60px);*/
             background-color: #fff !important;
             overflow-y: scroll;
             overflow-x: none;
@@ -198,8 +202,10 @@
         <form id="form" class="horizontal layout">
             <div id="left" class="vertical layout">
                 <label class="jso" style="margin-top:0px;"><i class="fa fa-gavel"></i> Gene list:</label>
-                <div id="updateGenesButton" class="jso-btn jso-btn-shdw button" on-click="handleUpdateButton"> <i class="fa fa-refresh"></i>&nbsp; Update </div>
-                <!-- <div id="cleanGenesButton" class="jso-btn jso-btn-shdw button" on-click="handleCleanButton"> <i class="fa fa-refresh"></i>&nbsp; Clean </div> -->
+                <div class="horizontal layout" style="margin:3px 0">
+                    <div id="updateGenesButton" class="flex jso-btn jso-btn-shdw button" on-click="handleUpdateButton"> <i class="fa fa-refresh"></i>&nbsp; Update </div>
+                    <div id="clearButton" class="jso-btn jso-btn-shdw button" on-click="handleClearButton"> <i class="fa fa-times"></i>&nbsp; Clear </div>
+                </div>
                 <jso-search id="geneSearch" placeholder="Search genes..." on-item-select="handleGeneSearch"></jso-search>
                 <div id="geneList" class="list flex">
                     <template is="dom-repeat" items="{{geneList}}">
@@ -276,7 +282,7 @@
                 <i class="fa fa-circle-o-notch fa-spin"></i> Loading...
             </div>
         </div>
-        <jso-panel hidden closable id="reportPanel">
+        <jso-panel hidden closable fixed modal id="reportPanel">
             <div class="header">
                 Report
             </div>
@@ -393,6 +399,7 @@
             jobItemChanged: function(neo, old) {
                 if (neo) {
                     var me = this;
+                    me.clean();
                     var job = neo;
                     var fileIds = job.input.concat(job.output);
                     this.loading = true;
@@ -429,12 +436,13 @@
                                     me._loadInputGenes();
                                 }
                             });
-                            me.clean();
                             me.set('reportFile', me._resultFileNameMap['report.xml']);
                             if (me.reportFile.attributes.pathact != null && me.reportFile.attributes.pathact.geneList != null) {
                                 var restoreRelatedDrugList = me.reportFile.attributes.pathact.relatedDrugList;
                                 me._loadGeneList(me.reportFile.attributes.pathact.geneList);
+                                // me.async(function() {
                                 me._loadRelatedDrugList(restoreRelatedDrugList);
+                                // }, 300);
                             }
                         });
 
@@ -515,6 +523,7 @@
                 for (var key in this._drugToGeneMap) {
                     this._drugToGeneMap[key].s = null;
                 }
+                this.$.geneSearch.clean();
             },
             handleReportButton: function(e) {
                 if (this.reportFile != null) {
@@ -595,6 +604,7 @@
 
                 console.log(pwid);
                 this.loading = true;
+                this.reportFile.attributes.pathact
                 this._getFileContent(this._resultFileNameMap[pwid + '.sif'].id, function(sifContent) {
                     me._getFileContent(me._resultFileNameMap[pwid + '.natt'].id, function(nattContent) {
                         me._getFileContent(me._resultFileInitNameMap[pwid + '.natt'].id, function(nattInitContent) {
@@ -807,8 +817,41 @@
                 }
                 this.set('relatedGeneList', relatedGeneList);
             },
-            handleCleanButton: function(e) {
-                // this._updateGenes('SOS1\t0.69');
+            handleClearButton: function(e) {
+                var me = this;
+                if (this.loading == false) {
+                    this.loading = true;
+                    this.set('geneList', []);
+                    this.set('geneMap', {});
+                    this.set('relatedDrugList', []);
+                    this.set('_inputGeneList', []);
+                    this.$.geneSearch.clean();
+                    this.$.networkViewer.startOver();
+
+                    /**/
+                    var split2 = this.jobItem.params.exp_file.split('/');
+                    split2.pop();
+                    var workingFolderPath = split2.join('/') + '/' + this.jobFolder.path;
+                    console.log(workingFolderPath);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', PATHACT_HOST + '/clear?working_folder=' + workingFolderPath, true);
+                    xhr.onload = function(e) {
+                        var response = this.responseText;
+                        console.log(response);
+                        me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
+                            me._loadPathwayList(JSON.parse(content));
+                            me.loading = false;
+                        });
+                    };
+                    // this.loading = true;
+                    xhr.send();
+                    /**/
+
+                    this._updateFileAttributes(this.reportFile.id, {
+                        pathact: {}
+                    }, function() {});
+                }
             },
             handleUpdateButton: function(e) {
                 if (this.loading == false) {
@@ -870,7 +913,6 @@
                     var workingFolderPath = split2.join('/') + '/' + this.jobFolder.path;
                     console.log(workingFolderPath);
 
-                    // formData.append('working_folder', this.reportFile.attributes.pathact.workingFolderPath);
                     formData.append('working_folder', workingFolderPath);
                     formData.append('fold_change', this.foldChange);
                     formData.append('ko_file', ko_file, 'ko_file.txt');
