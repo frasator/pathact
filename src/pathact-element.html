@@ -105,7 +105,7 @@
         <div class="content" menu-option="home,start,pathact">
             <jso-panel hidden fixed modal closable id="configureDrugActionsPanel" on-hidden="handlePanelHidden">
                 <div class="header">
-                    Configure drug action weight
+                    <i class="fa fa-sliders"></i> Settings
                 </div>
                 <div id="drugActionList" class="container flex" style="width:650px; padding:7px;">
                     <label class="jso">Configure fold change:</label>
@@ -365,7 +365,7 @@
             },
             runExample: function() {
                 this.async(function() {
-                    // this.$.pathactViewer.handleLoadExample();
+                    this.$.pathactForm.handleLoadExample();
                 }, 100);
             },
             projectsChanged: function(neo, old) {
@@ -377,7 +377,20 @@
                         }
                     }
                 }
-            }
+            },
+	    _openRemoteFile: function(filepath, cb) {
+                var me = this;
+                var request = new XMLHttpRequest();
+                request.onload = function() {
+                    cb(this.responseText);
+                };
+                request.onerror = function() {
+                    console.log('Error loading remote file');
+                };
+                request.open("GET", filepath);
+                request.send();
+            },
+
         });
     </script>
 </dom-module>

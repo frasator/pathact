@@ -253,7 +253,7 @@
                     error = true;
                 }
                 if (error === false) {
-                    this._launchInit(this.inputFile, this.$.nameInput.value);
+                    this._launchInit(this.inputFile, this.$.nameInput.value.replace(/\s/g, '-'));
                 }
             },
             _launchInit: function(file, jobName) {

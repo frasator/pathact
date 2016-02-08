@@ -287,6 +287,10 @@
                 Report
             </div>
             <div id="reportPanelContainer" class="container">
+
+            </div>
+            <div class="footer flex horizontal layout center-justified">
+                <div class="jso-btn jso-btn-shdw" style="width:250px;" on-click="handleCloseReport">Close</div>
             </div>
         </jso-panel>
     </template>
@@ -392,6 +396,9 @@
             ],
             handleBackButton: function() {
                 this.fire('goback');
+            },
+            handleCloseReport: function() {
+                this.$.reportPanel.hide();
             },
             computeInputFileName: function(name) {
                 return name.split('/').pop();
@@ -821,10 +828,17 @@
                 var me = this;
                 if (this.loading == false) {
                     this.loading = true;
+
+                    this._updateFileAttributes(this.reportFile.id, {
+                        pathact: {}
+                    }, function() {});
+
                     this.set('geneList', []);
                     this.set('geneMap', {});
+                    this.set('relatedGeneList', []);
                     this.set('relatedDrugList', []);
                     this.set('_inputGeneList', []);
+                    this.set('selectedPathway', null);
                     this.$.geneSearch.clean();
                     this.$.networkViewer.startOver();
 
@@ -848,9 +862,6 @@
                     xhr.send();
                     /**/
 
-                    this._updateFileAttributes(this.reportFile.id, {
-                        pathact: {}
-                    }, function() {});
                 }
             },
             handleUpdateButton: function(e) {
