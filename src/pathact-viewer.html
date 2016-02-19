@@ -231,14 +231,19 @@
                     <div id="backButton" class="jso-btn jso-btn-shdw button" on-click="handleBackButton"> <i class="fa fa-arrow-left"></i>&nbsp; Back </div>
                     <div style="margin-left:30px;">
                         <label class="jso">Job:
-                        </label>{{jobItem.name}} - {{computeInputFileName(jobItem.params.exp_file)}}</div>
+                        </label>{{jobItem.name}} - {{computeInputFileName(jobItem)}}</div>
                     <div class="flex"></div>
                     <div id="reportButton" on-click="handleReportButton" class="jso-btn jso-btn-shdw button" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show last update report</div>
                 </div>
                 <jso-network-viewer id="networkViewer" style="height:calc(100% - 27px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar disable-context-menu on-leftclickvertex="handleNetworkViewerVertexClick"></jso-network-viewer>
             </div>
             <div id="right">
-                <label class="jso">Pathway list:</label>
+                <div class="horizontal layout">
+                    <label class="jso">Pathway list:</label>
+                    <div class="flex"></div>
+                    <span style="color:#000">{{pwChangedCount}}</span>
+                    <span style="color:#666">&nbsp;altered</span>
+                </div>
                 <div id="pathwayList" class="plist" style="height:calc(40% - 23px);">
                     <template is="dom-repeat" items="{{pathwayList}}">
                         <div on-click="handlePathwayClick" data-checked$="{{isPathwaySelected(item, selectedPathway)}}">
@@ -248,7 +253,12 @@
                         </div>
                     </template>
                 </div>
-                <label class="jso" style="margin-top:5px;">Circuit list:</label>
+                <div class="horizontal layout" style="margin-top:5px;">
+                    <label class="jso">Circuit list:</label>
+                    <div class="flex"></div>
+                    <span style="color:#000">{{circuitChangedCount}}</span>
+                    <span style="color:#666">&nbsp;altered</span>
+                </div>
                 <div id="pathList" class="plist" style="height:calc(40% - 23px);">
                     <template is="dom-repeat" items="{{pathList}}">
                         <div on-click="handlePathClick" data-checked$="{{isPathSelected(item, selectedPath)}}">
@@ -389,19 +399,38 @@
                 },
                 _pathwayInitExpression: {
                     type: Object,
+                },
+                _validHgncSignalingGenesList: {
+                    type: Array,
+                    value: function() {
+                        return []
+                    }
+                },
+                pwChangedCount: {
+                    type: Number,
+                    value: 0
+                },
+                circuitChangedCount: {
+                    type: Number,
+                    value: 0
                 }
             },
             observers: [
                 'geneListchanged(geneList.splices)'
             ],
             handleBackButton: function() {
+                this.clean();
+                this.set('jobItem', null);
                 this.fire('goback');
             },
             handleCloseReport: function() {
                 this.$.reportPanel.hide();
             },
-            computeInputFileName: function(name) {
-                return name.split('/').pop();
+            computeInputFileName: function(jobItem) {
+                if (jobItem && jobItem.params && jobItem.params.exp_file) {
+                    return jobItem.params.exp_file.split('/').pop();
+                }
+                return '';
             },
             jobItemChanged: function(neo, old) {
                 if (neo) {
@@ -492,6 +521,17 @@
                     }));
                     me.set('_geneToDrugMap', map);
                 });
+                this._openRemoteFile('./valid_hgnc_signaling_genes.txt', function(content) {
+                    var lines = content.split('\n');
+                    var genes = [];
+                    for (var i = 0; i < lines.length; i++) {
+                        var line = lines[i];
+                        if (line != "") {
+                            genes.push(line);
+                        }
+                    }
+                    me.set('_validHgncSignalingGenesList', genes);
+                });
 
                 // localStorage.removeItem("pathact_actions");
             },
@@ -547,11 +587,17 @@
             },
             _loadPathwayList: function(o) {
                 console.log(o);
+                var pwChangedCount = 0;
                 var pathwayList = [];
                 for (var i = 0; i < o.length; i++) {
                     var pw = o[i];
+                    console.log(pw.haschanged);
+                    if (pw.haschanged === true) {
+                        pwChangedCount++;
+                    }
                     pathwayList.push(pw);
                 }
+                this.set('pwChangedCount', pwChangedCount);
                 o.sort(this._pwSortFn);
                 this.set('pathwayList', o);
                 if (this.selectedPathway != null) {
@@ -563,7 +609,6 @@
             handlePathwayClick: function(e) {
                 console.log(e.model.item);
                 this._selectPathway(e.model.item);
-                this.set('pathList', e.model.item.paths);
             },
             handlePathClick: function(e) {
                 var path = e.model.item;
@@ -608,6 +653,14 @@
                 this.set('selectedPathway', pw);
                 pw.paths.sort(this._pwSortFn);
                 this.set('pathList', pw.paths);
+                var circuitChangedCount = 0;
+                for (var i = 0; i < this.pathList.length; i++) {
+                    var path = this.pathList[i];
+                    if(path.haschanged===true){
+                        circuitChangedCount++;
+                    }
+                }
+                this.set('circuitChangedCount', circuitChangedCount);
 
                 console.log(pwid);
                 this.loading = true;
@@ -746,7 +799,7 @@
                 this._updateDrugList();
             },
             _processDrugRelatedGenes: function() {
-                this._saveAttributesToFile();
+                // this._saveAttributesToFile();
                 var relatedGeneList = [];
                 var auxGeneMap = {};
 
@@ -846,7 +899,7 @@
                     var split2 = this.jobItem.params.exp_file.split('/');
                     split2.pop();
                     var workingFolderPath = split2.join('/') + '/' + this.jobFolder.path;
-                    console.log(workingFolderPath);
+                    // console.log(workingFolderPath);
 
                     var xhr = new XMLHttpRequest();
                     xhr.open('GET', PATHACT_HOST + '/clear?working_folder=' + workingFolderPath, true);
@@ -922,7 +975,7 @@
                     var split2 = this.jobItem.params.exp_file.split('/');
                     split2.pop();
                     var workingFolderPath = split2.join('/') + '/' + this.jobFolder.path;
-                    console.log(workingFolderPath);
+                    // console.log(workingFolderPath);
 
                     formData.append('working_folder', workingFolderPath);
                     formData.append('fold_change', this.foldChange);
@@ -978,7 +1031,7 @@
                     el.set('value', value);
                     // el.$.input.value = value;
                 }
-                this._saveAttributesToFile();
+                // this._saveAttributesToFile();
             },
             handleRemoveGene: function(e) {
                 var name = e.detail;
@@ -986,10 +1039,10 @@
                 var key = 'geneMap.' + name;
                 this.set(key, null);
                 this._rebuildGeneMap();
-                this._saveAttributesToFile();
+                // this._saveAttributesToFile();
             },
             handleChangeGene: function() {
-                this._saveAttributesToFile();
+                // this._saveAttributesToFile();
             },
             _rebuildGeneMap: function() {
                 for (var i = 0; i < this.geneList.length; i++) {
@@ -1098,42 +1151,65 @@
                 }
             },
             _initGeneSearch: function() {
+                var me = this;
                 var search = function(query, cb) {
-                    CellBaseManager.get({
-                        species: 'hsapiens',
-                        category: 'feature',
-                        subCategory: 'id',
-                        query: query.toUpperCase(),
-                        resource: 'starts_with',
-                        params: {
-                            limit: 10
-                        },
-                        async: true,
-                        success: function(data, textStatus, jqXHR) {
-                            if (data.response != null && data.response.length > 0 && data.response[0].result != null) {
-                                cb(data.response[0].result);
-                            } else {
-                                cb([]);
-                            }
-                        },
-                        error: function() {
-                            cb([]);
+                    var results = [];
+                    for (var i = 0; i < me._validHgncSignalingGenesList.length; i++) {
+                        var gene = me._validHgncSignalingGenesList[i];
+                        if (gene.toUpperCase().indexOf(query.toUpperCase()) == 0) {
+                            results.push(gene);
                         }
-                    });
+                    }
+                    cb(results);
                 };
                 var parse = function(results) {
                     var items = [];
                     for (var i = 0; i < results.length; i++) {
                         var r = results[i];
-                        items.push(r.name);
+                        items.push(r);
                     }
                     return items;
                 };
                 this.$.geneSearch.setSearchFunction(search);
                 this.$.geneSearch.setParseFunction(parse);
-                // this.$.knockoutGenesSearch.setSearchFunction(search);
-                // this.$.knockoutGenesSearch.setParseFunction(parse);
             },
+            // _initGeneSearch: function() {
+            //     var search = function(query, cb) {
+            //         CellBaseManager.get({
+            //             species: 'hsapiens',
+            //             category: 'feature',
+            //             subCategory: 'id',
+            //             query: query.toUpperCase(),
+            //             resource: 'starts_with',
+            //             params: {
+            //                 limit: 10
+            //             },
+            //             async: true,
+            //             success: function(data, textStatus, jqXHR) {
+            //                 if (data.response != null && data.response.length > 0 && data.response[0].result != null) {
+            //                     cb(data.response[0].result);
+            //                 } else {
+            //                     cb([]);
+            //                 }
+            //             },
+            //             error: function() {
+            //                 cb([]);
+            //             }
+            //         });
+            //     };
+            //     var parse = function(results) {
+            //         var items = [];
+            //         for (var i = 0; i < results.length; i++) {
+            //             var r = results[i];
+            //             items.push(r.name);
+            //         }
+            //         return items;
+            //     };
+            //     this.$.geneSearch.setSearchFunction(search);
+            //     this.$.geneSearch.setParseFunction(parse);
+            //     // this.$.knockoutGenesSearch.setSearchFunction(search);
+            //     // this.$.knockoutGenesSearch.setParseFunction(parse);
+            // },
             _loadInputGenes: function() {
                 var me = this;
                 this._getFileContent(this._resultFileNameMap['ko.txt'].id, function(content) {
