@@ -38,6 +38,7 @@ cp -r pathact_example.txt $BP/
 cp -r drugmap.json.gz $BP/
 cp -r genemap.json.gz $BP/
 cp -r drug-actions.json $BP/
+cp -r valid_hgnc_signaling_genes.txt $BP/
 
 #
 # fix index.html paths
