@@ -1,4 +1,8 @@
 <script src="../bower_components/file-saver.js/FileSaver.js"></script>
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/classes/iron-flex-layout.html">
+
 <link rel="import" href="../lib/jsorolla/src/lib/components/jso-application-behavior.html">
 <link rel="import" href="../lib/jsorolla/src/lib/components/opencga/jso-opencga-manager-behavior.html">
 <link rel="import" href="../lib/jsorolla/src/network-viewer/jso-network-viewer.html">
@@ -8,10 +12,11 @@
 <link rel="import" href="../lib/jsorolla/src/lib/components/opencga/jso-opencga-footer.html">
 <link rel="import" href="../lib/jsorolla/src/lib/components/opencga/jso-opencga-header.html">
 <link rel="import" href="../lib/jsorolla/src/lib/components/jso-search.html">
+<link rel="import" href="../lib/jsorolla/src/lib/components/jso-tooltip.html">
 <link rel="import" href="../lib/jsorolla/src/lib/components/opencga/files/jso-opencga-browser.html">
 <link rel="import" href="../lib/jsorolla/src/lib/components/opencga/files/jso-opencga-job-browser.html">
 
-<link rel="import" href="pathact-viewer.html">
+<link rel="import" href="viewer/pathact-viewer.html">
 <link rel="import" href="pathact-form.html">
 <link rel="import" href="jso-pathways-result.html">
 
@@ -206,7 +211,8 @@
                     type: Array,
                     value: [{
                         value: 'DATAMATRIX_EXPRESSION',
-                        text: 'Data matrix expression'
+                        text: 'Data matrix expression',
+                        hint: 'Data matrix expression matrix is a Tab-separated values file. The columns correspond to samples of the experiment and rows correspond to gene/probe/protein names.'
                     }]
                 },
                 allowedTools: {
@@ -378,7 +384,7 @@
                     }
                 }
             },
-	    _openRemoteFile: function(filepath, cb) {
+            _openRemoteFile: function(filepath, cb) {
                 var me = this;
                 var request = new XMLHttpRequest();
                 request.onload = function() {

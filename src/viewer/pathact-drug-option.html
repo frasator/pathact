@@ -1,0 +1,40 @@
+<dom-module id="pathact-drug-option">
+    <style>
+        :host {
+            display: block;
+            position: relative;
+            box-sizing: border-box;
+            word-break: break-all;
+            cursor: pointer;
+        }
+
+        .name {
+            margin-right: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+    <template>
+        <label class="jso-control ">
+            <input type="checkbox" checked$="{{drug.s}}" on-click="handleClick">
+            <span class="name">{{drug.n}}</span>
+        </label>
+    </template>
+    <script>
+        Polymer({
+            is: 'pathact-drug-option',
+            behaviors: [JsoOpencgaManagerBehavior],
+            properties: {
+                drug: {
+                    type: Object
+                }
+            },
+            handleClick: function(e) {
+                var input = e.currentTarget;
+                this.set('drug.s', input.checked);
+                this.fire('selected-change', input.checked);
+            }
+        });
+    </script>
+</dom-module>

@@ -103,7 +103,7 @@
                 <br>
                 <br>
                 <div class="jso-note jso-note-pathact" style="margin:10px 40px">
-                    1. In order to create a job, a file must be selected from the server, if the file is not already in the server it should be uploaded first, both actions can be performed usgin the following button.
+                    1. In order to create a job, a file must be selected from the server, if the file is not already in the server it should be uploaded first, both actions can be performed using the following button.
                 </div>
                 <div hidden id="inputFileError" class="jso-note jso-note-error" style="margin:10px 40px">
                     No expression matrix file selected.
@@ -219,7 +219,7 @@
                 this._getFileContent(file.id, function(content) {
                     var samples = [];
                     var line, fields, field;
-                    var lines = content.split('\n');
+                    var lines = content.split(/[\r\n]+/g);
                     if (lines.length > 0) {
                         line = lines[0];
                         if (line != '') {
@@ -266,7 +266,12 @@
                 var folderName = '.pathact-init-' + jobName + '-' + file.name;
                 var split = file.path.split('/');
                 split.pop();
-                this._createFolder(studyId, split.join('/'), folderName, function(folder) {
+                var path = split.join('/');
+                if(path.lengh > 0){
+                    path = path + '/'
+                }
+                console.log(split.join('/'));
+                this._createFolder(studyId, path, folderName, function(folder) {
                     me._launchpathactInit(studyId, file, folder, jobName, function(job) {
                         me.clean();
                     });
