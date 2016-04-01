@@ -219,7 +219,7 @@
                 this._getFileContent(file.id, function(content) {
                     var samples = [];
                     var line, fields, field;
-                    var lines = content.split(/[\r\n]+/g);
+                    var lines = content.split(/\r\n|\r|\n/);
                     if (lines.length > 0) {
                         line = lines[0];
                         if (line != '') {
