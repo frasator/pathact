@@ -93,6 +93,11 @@
             width: 80%;
             min-width: 500px;
         }
+
+        #url {
+            text-decoration: none;
+            color: var(--dark-button-color);
+        }
     </style>
     <template>
         <form id="form" class="horizontal layout">
@@ -104,6 +109,12 @@
                 <br>
                 <div class="jso-note jso-note-pathact" style="margin:10px 40px">
                     1. In order to create a job, a file must be selected from the server, if the file is not already in the server it should be uploaded first, both actions can be performed using the following button.
+                    <br>
+                    <br> Please click
+                    <a id="url" href="http://pathact.babelomics.org/doc/doku.php?id=data_matrix_expression_file" target="_blank">
+                        here <i class="fa fa-external-link"></i>
+                    </a>
+                    to read more about the input file format.
                 </div>
                 <div hidden id="inputFileError" class="jso-note jso-note-error" style="margin:10px 40px">
                     No expression matrix file selected.
@@ -119,6 +130,12 @@
                 <div class="jso-note jso-note-pathact" style="margin:10px 40px">
                     2. Now select a sample from your expression matrix file.
                 </div>
+
+                <label style="text-align:center" class="jso-control">
+                    <input id="logarithmCheckbox" type="checkbox" on-change="handleLogarithmCheckBox">
+                    <span>Apply logarithm?</span>
+                </label>
+                <br>
 
                 <jso-select-box id="sampleSelect" options="{{inputSamples}}" title-attribute="name"></jso-select-box>
                 <br>
@@ -164,7 +181,10 @@
             behaviors: [JsoOpencgaManagerBehavior],
             properties: {
                 inputFile: {
-                    type: Object
+                    type: Object,
+                    value: function() {
+                        return null;
+                    }
                 },
                 inputSamples: {
                     type: Array
@@ -182,9 +202,6 @@
                     type: Boolean,
                     value: false
                 }
-            },
-            checkInputFile: function(file) {
-                return file != null;
             },
             clean: function() {
                 this.$.nameInput.value = '';
@@ -212,6 +229,10 @@
                 var file = e.detail;
                 console.log(file)
                     // this._launchInit(file);
+            },
+            handleLogarithmCheckBox: function(e) {
+                var cb = e.currentTarget;
+
             },
             _getSamplesFromExpressionMatrixFile: function(file) {
                 var me = this;
@@ -267,7 +288,7 @@
                 var split = file.path.split('/');
                 split.pop();
                 var path = split.join('/');
-                if(path.lengh > 0){
+                if (path.lengh > 0) {
                     path = path + '/'
                 }
                 console.log(split.join('/'));

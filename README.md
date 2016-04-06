@@ -1,5 +1,6 @@
 PathAct
-========
+===========
+PathAct is a web tool that enables the study of the consequences that Knockouts(KOs) or over-expressions of genes can have over signalling pathways. PathAct implements robust models of signalling pathways within an advanced graphical interface that provide a unique interactive working environment in which actionable genes, that could become potential drug targets, can be easily assayed alone or in combinations. Also the effect of drugs with known targets over the different signalling pathways can be studied. Since signals trigger functions across the pathways, the direct and long-distance functional consequences of interventions over genes can be straightforwardly revealed through this actionable pathway scenario
 
 
 ## Download code

@@ -23,15 +23,63 @@ ExpressionValidator.prototype.validateLine = function (line) {
 
 }
 
-ExpressionValidator.prototype.isHeaderLine = function (line) {
-    return line.startsWith("#");
+ExpressionValidator.prototype.isHeaderLine = function () {
+    return this.line === 1;
+}
+ExpressionValidator.prototype.validateEnd = function () {
+    if (this.numLines < 2) {
+        this.addLog("error", "The file only contains one line.");
+    }
 }
 
-ExpressionValidator.prototype.parseHeader = function (line) {}
+ExpressionValidator.prototype.parseHeader = function (line) {
+    var cols = line.split('\t');
+    this._columnsSize = cols.length;
+
+    if (cols.length < 2) {
+        this.addLog("error", "Header columns must be 2 or higher.");
+    } else {
+        var v = parseFloat(cols[1]);
+        if (isNaN(v)) {
+
+        } else {
+            this.addLog("warning", "Header could not be set correctly, sample names seems to be numbers.")
+        }
+    }
+}
 
 ExpressionValidator.prototype.parseData = function (line) {
-    // var columns = line.split("\t");
-    this.addLog("info", "checking line");
+
+    if (line == "") {
+        this.addLog("warning", "Empty line.");
+    }else{
+        var columns = line.split("\t");
+
+        if (this._columnsSize !== columns.length) {
+            this.addLog("error", "Column length must be same as the header column length.");
+        } else {
+            if (columns.length > 1) {
+                var found = false;
+                for (var i = 1; i < columns.length; i++) {
+                    var c = columns[i];
+                    var v = parseFloat(c);
+                    if (isNaN(v)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) {
+                    this.addLog("error", "Column values must be numbers");
+                }
+            } else {
+                this.addLog("error", "Number of columns must be 2 or higher.");
+            }
+        }
+    }
+
+
+
+    // this.addLog("info", "checking line");
 
     // if (this._columnsSize == null) {
     //     this._columnsSize = columns.length;
