@@ -1,8 +1,8 @@
-<link rel="import" href="pathact-drug-search.html">
 <link rel="import" href="pathact-gene-search.html">
 
 <link rel="import" href="pathact-gene-option.html">
 <link rel="import" href="pathact-drug-option.html">
+<link rel="import" href="pathact-drug-item.html">
 <link rel="import" href="pathact-action-option.html">
 <dom-module id="pathact-viewer">
     <style>
@@ -143,12 +143,12 @@
             margin-left: 5px;
         }
 
-        #backButton{
+        #backButton {
             background-color: #188ead !important;
             color: var(--text-primary-color) !important;
         }
 
-        #backButton:hover{
+        #backButton:hover {
             background-color: #20aed4 !important;
         }
 
@@ -246,7 +246,7 @@
     <template>
         <form id="form" class="horizontal layout">
             <div id="left" class="vertical layout">
-                <div class="horizontal layout" style="margin-bottom:10px;">
+                <div class="horizontal layout">
                     <div id="backButton" class="jso-btn jso-btn-shdw button" on-click="handleBackButton">
                         <i class="fa fa-arrow-left"></i>&nbsp; Back &nbsp;
                     </div>
@@ -257,18 +257,18 @@
                         <i class="fa fa-times"></i>&nbsp; Clear &nbsp;
                     </div>
                 </div>
-                <div class="horizontal layout">
+                <!-- <div class="horizontal layout">
                     <div id="geneSearchModeButton" class="jso-btn jso-btn-shdw flex" data-mode="gene" on-click="handleSearchMode" data-selected$="{{computeSearchMode(searchMode,'gene')}}">
                         <i class="fa fa-gavel"></i> Genes
                     </div>
                     <div id="drugSearchModeButton" class="jso-btn jso-btn-shdw flex" data-mode="drug" on-click="handleSearchMode" data-selected$="{{computeSearchMode(searchMode,'drug')}}">
                         <i class="fa fa-flask"></i> Drugs
                     </div>
-                </div>
+                </div> -->
 
-                <pathact-gene-search id="geneSearch" hidden="{{!computeSearchMode(searchMode,'gene')}}" class="vertical layout" valid-gene-list="{{_validHgncSignalingGenesList}}" drug-action-map="{{drugActionMap}}" drug-to-gene-map="{{_drugToGeneMap}}" gene-to-drug-map="{{_geneToDrugMap}}" default-ko-value="{{defaultKoValue}}" on-drug-list-changed="handleGeneDrugListChanged"></pathact-gene-search>
+                <pathact-gene-search id="geneSearch" class="vertical layout" valid-gene-list="{{_validHgncSignalingGenesList}}" valid-gene-map="{{_validHgncSignalingGenesMap}}" valid-drug-list="{{_validDrugList}}" drug-action-map="{{drugActionMap}}" drug-to-gene-map="{{_drugToGeneMap}}" gene-to-drug-map="{{_geneToDrugMap}}" default-ko-value="{{defaultKoValue}}" on-drug-list-changed="handleGeneDrugListChanged"></pathact-gene-search>
 
-                <pathact-drug-search id="drugSearch" hidden="{{!computeSearchMode(searchMode,'drug')}}" class="vertical layout" drug-list="{{_validDrugList}}" drug-action-map="{{drugActionMap}}"></pathact-drug-search>
+                <!-- <pathact-drug-search id="drugSearch" hidden="{{!computeSearchMode(searchMode,'drug')}}" class="vertical layout" drug-list="{{_validDrugList}}" drug-action-map="{{drugActionMap}}"></pathact-drug-search> -->
 
             </div>
             <div id="center" class="flex">
@@ -435,6 +435,12 @@
                         return []
                     }
                 },
+                _validHgncSignalingGenesMap: {
+                    type: Object,
+                    value: function() {
+                        return {}
+                    }
+                },
                 _validDrugList: {
                     type: Array,
                     value: function() {
@@ -567,13 +573,16 @@
                 this._openRemoteFile('./valid_hgnc_signaling_genes.txt', function(content) {
                     var lines = content.split('\n');
                     var genes = [];
+                    var genesMap = {};
                     for (var i = 0; i < lines.length; i++) {
                         var line = lines[i];
                         if (line != "") {
                             genes.push(line);
+                            genesMap[line.toUpperCase()] = true;
                         }
                     }
                     me.set('_validHgncSignalingGenesList', genes);
+                    me.set('_validHgncSignalingGenesMap', genesMap);
                 });
 
                 // localStorage.removeItem("pathact_actions");
@@ -588,7 +597,6 @@
                 this.$.networkViewer.startOver();
                 this.loading = false;
                 this.$.geneSearch.clean();
-                this.$.drugSearch.clean();
                 this.checkReport();
             },
             jobItemChanged: function(neo, old) {

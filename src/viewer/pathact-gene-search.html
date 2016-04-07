@@ -17,25 +17,49 @@
             border: 1px solid var(--divider-color);
             background-color: var(--light-primary-color);
         }
+
+        .list.with-search {
+            border-top: 0;
+        }
+
+        .related {
+            padding: 2px 5px;
+            background-color: var(--hover-color);
+            color: var(--secondary-text-color);
+            border: 1px solid var(--divider-color);
+            border-top: 0;
+            border-bottom: 0;
+        }
+
+        jso-search {
+            width: 100%;
+        }
     </style>
     <template>
-        <jso-search id="search" placeholder="Gene search..." on-item-select="handleSearchSelect"></jso-search>
-        <label class="jso" style="margin-top:10px;"><i class="fa fa-gavel" style="color:#16a381"></i> Gene list:</label>
-        <div id="selectedGeneList" class="list flex">
+        <label class="jso" style="color:#a31616"><i class="fa fa-flash"></i> Genes:</label>
+        <jso-search id="geneSearch" placeholder="Gene search..." on-item-select="handleGeneSearchSelect"></jso-search>
+        <div id="selectedGeneList" class="list with-search flex-2">
             <template is="dom-repeat" items="{{selectedGeneList}}">
                 <pathact-gene-option name="{{item.name}}" value="{{item.value}}" manual="{{item.manual}}" drugactions="{{item.drugactions}}" on-remove="handleRemoveGene" on-change="handleChangeGene"></pathact-gene-option>
             </template>
         </div>
-
-        <label class="jso" style="margin-top:10px;"><i class="fa fa-flask"></i> Related drug list:</label>
-        <div id="relatedDrugList" class="list flex">
+        <div class="related"><i class="fa fa-flask"></i> Gene related drugs:</div>
+        <div id="relatedDrugList" class="list flex-2">
             <template is="dom-repeat" items="{{relatedDrugList}}">
-                <pathact-drug-option drug="{{item}}" on-selected-change="handleDrugSelectedChange"></pathact-drug-option>
+                <pathact-drug-option drug="{{item}}" on-selected-change="handleRelatedDrugSelectedChange"></pathact-drug-option>
             </template>
         </div>
 
-        <label class="jso" style="margin-top:10px;"><i class="fa fa-flask" style="color:#68ad17"></i> Genes affected by drug list:</label>
-        <div id="relatedGeneList" class="list flex">
+        <label class="jso" style="margin-top:10px;"><i class="fa fa-flask"></i> Drugs:</label>
+        <jso-search id="drugSearch" placeholder="Drug search..." display-key="n" min-query-length="3" on-item-select="handleDrugSearchSelect"></jso-search>
+        <div id="selectedDrugList" class="list with-search flex" style="height:100px;">
+            <template is="dom-repeat" items="{{selectedDrugList}}">
+                <pathact-drug-item drug="{{item}}" on-remove-drug-item="handleRemoveDrug"></pathact-drug-item>
+            </template>
+        </div>
+
+        <label class="jso" style="margin-top:10px;color:#589e05"><i class="fa fa-flash"></i> Genes affected by drugs:</label>
+        <div id="relatedGeneList" class="list flex-3">
             <template is="dom-repeat" items="{{relatedGeneList}}">
                 <pathact-gene-option name="{{item.name}}" manual="{{item.manual}}" drugactions="{{item.drugactions}}"></pathact-gene-option>
             </template>
@@ -51,6 +75,19 @@
                         return []
                     }
                 },
+                validGeneMap: {
+                    type: Object,
+                    value: function() {
+                        return {}
+                    }
+                },
+                validDrugList: {
+                    type: Array,
+                    value: function() {
+                        return []
+                    }
+                },
+
                 drugActionMap: {
                     type: Object
                 },
@@ -77,6 +114,20 @@
                         return []
                     }
                 },
+
+                selectedDrugList: {
+                    type: Array,
+                    value: function() {
+                        return []
+                    }
+                },
+                selectedDrugMap: {
+                    type: Object,
+                    value: function() {
+                        return {}
+                    }
+                },
+
                 relatedDrugList: {
                     type: Array,
                     value: function() {
@@ -85,26 +136,23 @@
                 },
                 relatedGeneList: {
                     type: Array
-                },
-
-                drugList: {
-                    type: Array,
-                    value: function() {
-                        return []
-                    }
-                },
-
+                }
             },
             observers: [
-                'selectedGeneListChanged(selectedGeneList.splices)'
+                'selectedGeneListChanged(selectedGeneList.splices)',
+                'selectedDrugListChanged(selectedDrugList.splices)'
             ],
             ready: function() {
-                this._initSearch();
+                this._initGeneSearch();
+                this._initDrugSearch();
             },
             clean: function() {
-                this.$.search.clean();
+                this.$.geneSearch.clean();
+                this.$.drugSearch.clean();
                 this.set('selectedGeneList', []);
-                this.set('selectedGeneMap', []);
+                this.set('selectedGeneMap', {});
+                this.set('selectedDrugList', []);
+                this.set('selectedDrugMap', {});
                 this.set('relatedDrugList', []);
                 this.set('relatedGeneList', []);
                 for (var key in this.drugToGeneMap) {
@@ -112,14 +160,31 @@
                 }
             },
             selectedGeneListChanged: function() {
-                this._rebuildMap();
-                this._updateDrugList();
+                this._rebuildGeneMap();
+                this._updateRelatedDrugList();
             },
-            handleSearchSelect: function(e) {
+            handleRelatedDrugSelectedChange: function(e) {
+                this.drugToGeneMap[e.model.item.i] = e.model.item;
+                this._updateRelatedDrugList();
+            },
+            selectedDrugListChanged: function() {
+                this._rebuildDrugMap();
+                this._updateRelatedDrugList();
+            },
+            handleGeneSearchSelect: function(e) {
                 var name = e.detail;
                 if (this.selectedGeneMap[name] == null) {
                     this.addGene(name, this.defaultKoValue, true);
                 }
+            },
+            handleDrugSearchSelect: function(e) {
+                var drug = e.detail
+                if (this.selectedDrugMap[drug.i] == null) {
+                    var insertPosition = this.push('selectedDrugList', drug) - 1;
+                    this.selectedDrugMap[drug.i] = insertPosition;
+                }
+                this.$.drugSearch.clean();
+                this.$.drugSearch.hideList();
             },
             handleChangeGene: function() {
                 // this._saveAttributesToFile();
@@ -147,58 +212,59 @@
                 this.splice('selectedGeneList', this.selectedGeneMap[name], 1);
                 var key = 'selectedGeneMap.' + name;
                 this.set(key, null);
-                this._rebuildMap();
+                // this._rebuildGeneMap();
                 // this._saveAttributesToFile();
             },
-            handleDrugSelectedChange: function(e) {
-                this.drugToGeneMap[e.model.item.i] = e.model.item;
-                this._updateDrugList();
+            handleRemoveDrug: function(e) {
+                var drug = e.detail;
+                this.splice('selectedDrugList', this.selectedDrugMap[drug.i], 1);
             },
-            _updateDrugList: function() {
-                if (this.selectedGeneList.length > 0) {
-                    var newDrugList = [];
-                    var newDrugMap = {};
-                    for (var i = 0; i < this.selectedGeneList.length; i++) {
-                        var g = this.selectedGeneList[i];
-                        var drugIds = this.geneToDrugMap[g.name];
-                        if (Array.isArray(drugIds)) {
-                            for (var j = 0; j < drugIds.length; j++) {
-                                var drugId = drugIds[j];
-                                var d = this.drugToGeneMap[drugId];
-                                if (newDrugMap[d.i] == null) {
-                                    // d.s = false;
-                                    newDrugMap[d.i] = d;
-                                    newDrugList.push(d);
+            _updateRelatedDrugList: function() {
+                if (this.selectedGeneList != null && this.selectedDrugList != null) {
+                    if (this.selectedGeneList.length > 0) {
+                        var newDrugList = [];
+                        var newDrugMap = {};
+                        for (var i = 0; i < this.selectedGeneList.length; i++) {
+                            var g = this.selectedGeneList[i];
+                            var drugIds = this.geneToDrugMap[g.name];
+                            if (Array.isArray(drugIds)) {
+                                for (var j = 0; j < drugIds.length; j++) {
+                                    var drugId = drugIds[j];
+                                    var d = this.drugToGeneMap[drugId];
+                                    if (newDrugMap[d.i] == null) {
+                                        // d.s = false;
+                                        newDrugMap[d.i] = d;
+                                        newDrugList.push(d);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    for (var i = 0; i < this.selectedGeneList.length; i++) {
-                        var gene = this.selectedGeneList[i];
-                        var newGeneDrugActions = [];
-                        if (Array.isArray(gene.drugactions)) {
-                            for (var k = 0; k < gene.drugactions.length; k++) {
-                                var gda = gene.drugactions[k];
-                                if (newDrugMap[gda.drugid] != null && newDrugMap[gda.drugid].s === true) {
-                                    newGeneDrugActions.push(gda);
+                        for (var i = 0; i < this.selectedGeneList.length; i++) {
+                            var gene = this.selectedGeneList[i];
+                            var newGeneDrugActions = [];
+                            if (Array.isArray(gene.drugactions)) {
+                                for (var k = 0; k < gene.drugactions.length; k++) {
+                                    var gda = gene.drugactions[k];
+                                    if (newDrugMap[gda.drugid] != null && newDrugMap[gda.drugid].s === true) {
+                                        newGeneDrugActions.push(gda);
+                                    }
                                 }
+                                var pos = this.selectedGeneMap[gene.name];
+                                this.set('selectedGeneList.' + pos + '.drugactions', newGeneDrugActions);
                             }
-                            var pos = this.selectedGeneMap[gene.name];
-                            this.set('selectedGeneList.' + pos + '.drugactions', newGeneDrugActions);
                         }
-                    }
 
-                    this.set('relatedDrugList', newDrugList);
+                        this.set('relatedDrugList', newDrugList);
+                    } else {
+                        this.set('relatedDrugList', []);
+                        this.set('relatedGeneList', []);
+                    }
                     this._processDrugRelatedGenes();
-                } else {
-                    this.set('relatedDrugList', []);
-                    this.set('relatedGeneList', []);
+                    this.fire('drug-list-changed');
                 }
-                this.fire('drug-list-changed');
             },
             _processDrugRelatedGenes: function() {
-                // this._saveAttributesToFile();
                 var relatedGeneList = [];
                 var auxGeneMap = {};
 
@@ -211,13 +277,20 @@
                         selectedDrugsMap[drug.i] = drug;
                     }
                 }
+                for (var i = 0; i < this.selectedDrugList.length; i++) {
+                    var drug = this.selectedDrugList[i];
+                    if (selectedDrugsMap[drug.i] == null) {
+                        selectedDrugs.push(drug);
+                        selectedDrugsMap[drug.i] = drug;
+                    }
+                }
 
                 for (var i = 0; i < selectedDrugs.length; i++) {
                     var drug = selectedDrugs[i];
                     var targets = drug.t;
                     for (var j = 0; j < targets.length; j++) {
                         var target = targets[j];
-                        if (target.g != "") {
+                        if (target.g != "" && this.validGeneMap[target.g.toUpperCase()] === true) {
                             var drugvalue;
                             if (target.a != "") {
                                 // check action field contains more than one action names separated by comma.
@@ -276,7 +349,7 @@
                 }
                 this.set('relatedGeneList', relatedGeneList);
             },
-            _rebuildMap: function() {
+            _rebuildGeneMap: function() {
                 var map = {};
                 for (var i = 0; i < this.selectedGeneList.length; i++) {
                     var item = this.selectedGeneList[i];
@@ -284,7 +357,15 @@
                 }
                 this.set('selectedGeneMap', map);
             },
-            _initSearch: function() {
+            _rebuildDrugMap: function() {
+                var map = {};
+                for (var i = 0; i < this.selectedDrugList.length; i++) {
+                    var item = this.selectedDrugList[i];
+                    map[item.i] = i;
+                }
+                this.set('selectedDrugMap', map);
+            },
+            _initGeneSearch: function() {
                 var me = this;
                 var search = function(query, cb) {
                     var results = [];
@@ -296,7 +377,21 @@
                     }
                     cb(results);
                 };
-                this.$.search.setSearchFunction(search);
+                this.$.geneSearch.setSearchFunction(search);
+            },
+            _initDrugSearch: function() {
+                var me = this;
+                var search = function(query, cb) {
+                    var results = [];
+                    for (var i = 0; i < me.validDrugList.length; i++) {
+                        var drug = me.validDrugList[i];
+                        if (drug.n.toUpperCase().indexOf(query.toUpperCase()) >= 0) {
+                            results.push(drug);
+                        }
+                    }
+                    cb(results);
+                };
+                this.$.drugSearch.setSearchFunction(search);
             }
         });
     </script>

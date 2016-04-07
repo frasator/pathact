@@ -132,8 +132,8 @@
                 </div>
 
                 <label style="text-align:center" class="jso-control">
-                    <input id="logarithmCheckbox" type="checkbox" on-change="handleLogarithmCheckBox">
-                    <span>Log-transform data matrix.</span>
+                    <input id="logarithmCheckbox" type="checkbox">
+                    <span>Log-transform data matrix</span>
                 </label>
                 <br>
 
@@ -230,10 +230,6 @@
                 console.log(file)
                     // this._launchInit(file);
             },
-            handleLogarithmCheckBox: function(e) {
-                var cb = e.currentTarget;
-
-            },
             _getSamplesFromExpressionMatrixFile: function(file) {
                 var me = this;
                 this.set('inputSamples', []);
@@ -245,7 +241,7 @@
                         line = lines[0];
                         if (line != '') {
                             fields = line.split('\t');
-                            for (var i = 0; i < fields.length; i++) {
+                            for (var i = 1; i < fields.length; i++) {
                                 var field = fields[i];
                                 samples.push({
                                     name: field
@@ -312,6 +308,9 @@
                 };
                 if (this.$.sampleSelect.selected != null) {
                     query["sample"] = this.$.sampleSelect.selected.name
+                }
+                if (this.$.logarithmCheckbox.checked == true) {
+                    query["log"] = ""
                 }
                 OpencgaManager.jobs.create({
                     query: query,
