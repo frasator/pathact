@@ -219,29 +219,12 @@
             overflow-x: none;
         }
 
-        #geneSearchModeButton[data-selected] {
-            background-color: #16a381 !important;
-            color: var(--text-primary-color) !important;
-        }
-
-        #drugSearchModeButton[data-selected] {
-            background-color: #68ad17 !important;
-            color: var(--text-primary-color) !important;
-        }
-
-        #drugSearchModeButton {
-            margin-left: 0px;
-        }
 
         #geneSearch {
             height: 100%;
             margin-top: 5px;
         }
 
-        #drugSearch {
-            height: 100%;
-            margin-top: 5px;
-        }
     </style>
     <template>
         <form id="form" class="horizontal layout">
@@ -257,18 +240,8 @@
                         <i class="fa fa-times"></i>&nbsp; Clear &nbsp;
                     </div>
                 </div>
-                <!-- <div class="horizontal layout">
-                    <div id="geneSearchModeButton" class="jso-btn jso-btn-shdw flex" data-mode="gene" on-click="handleSearchMode" data-selected$="{{computeSearchMode(searchMode,'gene')}}">
-                        <i class="fa fa-gavel"></i> Genes
-                    </div>
-                    <div id="drugSearchModeButton" class="jso-btn jso-btn-shdw flex" data-mode="drug" on-click="handleSearchMode" data-selected$="{{computeSearchMode(searchMode,'drug')}}">
-                        <i class="fa fa-flask"></i> Drugs
-                    </div>
-                </div> -->
 
                 <pathact-gene-search id="geneSearch" class="vertical layout" valid-gene-list="{{_validHgncSignalingGenesList}}" valid-gene-map="{{_validHgncSignalingGenesMap}}" valid-drug-list="{{_validDrugList}}" drug-action-map="{{drugActionMap}}" drug-to-gene-map="{{_drugToGeneMap}}" gene-to-drug-map="{{_geneToDrugMap}}" default-ko-value="{{defaultKoValue}}" on-drug-list-changed="handleGeneDrugListChanged"></pathact-gene-search>
-
-                <!-- <pathact-drug-search id="drugSearch" hidden="{{!computeSearchMode(searchMode,'drug')}}" class="vertical layout" drug-list="{{_validDrugList}}" drug-action-map="{{drugActionMap}}"></pathact-drug-search> -->
 
             </div>
             <div id="center" class="flex">
@@ -452,11 +425,6 @@
                 },
                 _resultFileInitNameMap: {
                     type: Object
-                },
-
-                searchMode: {
-                    type: String,
-                    value: 'gene'
                 }
             },
             handleBackButton: function() {
@@ -472,12 +440,6 @@
                     return jobItem.params.exp_file.split('/').pop();
                 }
                 return '';
-            },
-            computeSearchMode: function(searchMode, value) {
-                return searchMode == value;
-            },
-            handleSearchMode: function(e) {
-                this.set('searchMode', e.currentTarget.dataset.mode);
             },
             isPathwaySelected: function(pw, selectedPathway) {
                 return selectedPathway != null && pw.id === selectedPathway.id;
@@ -642,17 +604,14 @@
                             me.set('reportFile', me._resultFileNameMap['report.xml']);
                             var attr = me.reportFile.attributes;
                             if (attr.pathact != null && attr.pathact.geneList != null) {
-                                var relatedDrugList = attr.pathact.relatedDrugList;
                                 var geneList = attr.pathact.geneList;
+                                var drugList = attr.pathact.drugList;
+                                var relatedDrugList = attr.pathact.relatedDrugList;
 
-                                if (attr.pathact.searchMode == 'gene') {
-                                    me.searchMode = 'gene';
-                                    me._loadGeneSearchList(geneList);
-                                    me._loadGeneSearchRelatedDrugList(relatedDrugList);
-                                } else if (attr.pathact.searchMode == 'drug') {
-                                    me.searchMode = 'drug';
-                                    me._loadDrugSearchSelectedDrugList(relatedDrugList);
-                                }
+                                me._loadGeneSearchList(geneList);
+                                me._loadGeneSearchDrugList(drugList);
+                                me._loadGeneSearchRelatedDrugList(relatedDrugList);
+
                                 me.checkReport();
                             }
                         });
@@ -803,13 +762,8 @@
                 if (this.$.networkViewer.vertices != null) {
 
                     var geneList, relatedGeneList;
-                    if (this.searchMode == 'gene') {
-                        geneList = this.$.geneSearch.selectedGeneList;
-                        relatedGeneList = this.$.geneSearch.relatedGeneList;
-                    } else if (this.searchMode == 'drug') {
-                        geneList = [];
-                        relatedGeneList = this.$.drugSearch.relatedGeneList;
-                    }
+                    geneList = this.$.geneSearch.selectedGeneList;
+                    relatedGeneList = this.$.geneSearch.relatedGeneList;
 
                     for (var i = 0; i < this.$.networkViewer.vertices.length; i++) {
                         v = this.$.networkViewer.vertices[i];
@@ -821,7 +775,7 @@
                                 name = relatedGeneList[j].name;
                                 if (v.attributes['label'].indexOf(name) != -1) {
                                     v.renderer.set('strokeSize', 6);
-                                    v.renderer.set('strokeColor', '#68ad17');
+                                    v.renderer.set('strokeColor', '#7acb1b');
                                 }
                             }
                         }
@@ -830,7 +784,7 @@
                             name = geneList[j].name;
                             if (v.attributes['label'].indexOf(name) != -1) {
                                 v.renderer.set('strokeSize', 6);
-                                v.renderer.set('strokeColor', '#16a381');
+                                v.renderer.set('strokeColor', '#cf1c1c');
                             }
                         }
                     }
@@ -880,14 +834,10 @@
                     var me = this;
                     var auxMap = {};
 
-                    var geneList, relatedGeneList;
-                    if (this.searchMode == 'gene') {
-                        geneList = this.$.geneSearch.selectedGeneList;
-                        relatedGeneList = this.$.geneSearch.relatedGeneList;
-                    } else if (this.searchMode == 'drug') {
-                        geneList = [];
-                        relatedGeneList = this.$.drugSearch.relatedGeneList;
-                    }
+                    var geneList, relatedGeneList, drugList;
+                    geneList = this.$.geneSearch.selectedGeneList;
+                    drugList = this.$.geneSearch.selectedDrugList;
+                    relatedGeneList = this.$.geneSearch.relatedGeneList;
 
                     for (var i = 0; i < geneList.length; i++) {
                         var gene = geneList[i];
@@ -991,20 +941,24 @@
                     if (attr == null) {
                         attr = {};
                     }
-                    attr.searchMode = this.searchMode;
+                    var geneList, relatedDrugList, drugList;
+                    geneList = this.$.geneSearch.selectedGeneList;
+                    drugList = this.$.geneSearch.selectedDrugList;
+                    relatedDrugList = this.$.geneSearch.relatedDrugList;
 
-                    var geneList, relatedDrugList;
-                    if (this.searchMode == 'gene') {
-                        geneList = this.$.geneSearch.selectedGeneList;
-                        relatedDrugList = this.$.geneSearch.relatedDrugList;
-                        if (geneList.length === 0) {
-                            this.$.geneSearch.set('relatedDrugList', []);
-                        }
-                    } else if (this.searchMode == 'drug') {
-                        geneList = [];
-                        relatedDrugList = this.$.drugSearch.selectedDrugList;
+                    if (geneList.length === 0) {
+                        this.$.geneSearch.set('relatedDrugList', []);
                     }
                     attr.geneList = geneList;
+
+                    var drugListToSave = [];
+                    for (var i = 0; i < drugList.length; i++) {
+                        var rd = drugList[i];
+                        drugListToSave.push({
+                            i: rd.i
+                        });
+                    }
+                    attr.drugList = drugListToSave;
 
                     var relatedDrugListToSave = [];
                     for (var i = 0; i < relatedDrugList.length; i++) {
@@ -1038,24 +992,24 @@
                     this.$.geneSearch._processDrugRelatedGenes();
                 }
             },
-            _loadDrugSearchSelectedDrugList: function(list) {
+            _loadGeneSearchDrugList: function(list) {
                 if (list != null) {
-                    var selectedDrugList = [];
+                    var drugList = [];
                     for (var i = 0; i < list.length; i++) {
-                        var rd = list[i];
-                        var drug = this._drugToGeneMap[rd.i];
-                        drug.s = rd.s;
-                        selectedDrugList.push(drug);
+                        var d = list[i];
+                        var drug = this._drugToGeneMap[d.i];
+                        drugList.push(drug);
                     }
 
-                    this.$.drugSearch.set('selectedDrugList', selectedDrugList);
+                    this.$.geneSearch.set('selectedDrugList', drugList);
+                    this.$.geneSearch._processDrugRelatedGenes();
                 }
             },
             handleNetworkViewerVertexClick: function(e) {
                 var v = this.$.networkViewer.graph.getVertexById(e.detail.vertexId);
                 this.lastSelectedNode = v.attributes.label;
 
-                if (v.id.indexOf("_func") == -1 && this.searchMode == "gene") {
+                if (v.id.indexOf("_func") == -1) {
                     var g = this.$.geneSearch.selectedGeneList[this.$.geneSearch.selectedGeneMap[this.lastSelectedNode]];
                     if (g != null) {
                         this.koInputValue = g.value;
