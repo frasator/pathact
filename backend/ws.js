@@ -111,6 +111,7 @@ if (cluster.isMaster) {
         var commands = [
             'cp ' + folder + 'sifs4CellMaps_init/* ' + folder + 'sifs4CellMaps/',
             'cp ' + folder + 'sifs4CellMaps_init/path_info.json ' + folder,
+            'cp ' + folder + 'sifs4CellMaps_init/report.xml ' + folder,
             'cp /dev/null ' + folder + 'ko.txt'
         ];
         var command = commands.join(' && ');

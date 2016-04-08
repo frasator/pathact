@@ -29,7 +29,9 @@
 
         #right {
             position: relative;
-            width: 280px;
+            width: 15%;
+            max-width: 280px;
+            min-width: 150px;
             box-sizing: border-box;
             height: 100%;
             padding-top: 4px;
@@ -37,10 +39,11 @@
 
         #left {
             position: relative;
-            width: 280px;
+            width: 15%;
+            max-width: 280px;
+            min-width: 150px;
             box-sizing: border-box;
             height: 100%;
-            padding-top: 4px;
         }
 
         #left > .jso-btn {
@@ -69,7 +72,6 @@
             padding: 5px 10px 10px 10px;
         }
 
-        .list,
         .plist,
         #inputGeneList {
             position: relative;
@@ -162,16 +164,11 @@
         }
 
         #reportButton {
-            display: none;
-        }
-
-        #reportButton[data-report] {
             background-color: var(--dark-button-color) !important;
             color: var(--text-primary-color) !important;
-            display: block;
         }
 
-        #reportButton[data-report]:hover {
+        #reportButton:hover {
             background-color: var(--light-button-color) !important;
         }
 
@@ -219,12 +216,10 @@
             overflow-x: none;
         }
 
-
         #geneSearch {
             height: 100%;
             margin-top: 5px;
         }
-
     </style>
     <template>
         <form id="form" class="horizontal layout">
@@ -245,12 +240,17 @@
 
             </div>
             <div id="center" class="flex">
-                <div class="horizontal layout center">
+                <div class="horizontal layout center" style="height:25px;">
                     <div style="margin-left:10px;">
                         <label class="jso">Name:
                         </label>{{jobItem.name}} - {{computeInputFileName(jobItem)}}</div>
                     <div class="flex"></div>
-                    <div id="reportButton" on-click="handleReportButton" class="jso-btn jso-btn-shdw" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show last update report</div>
+                    <div id="reportButton" on-click="handleReportButton" class="jso-btn jso-btn-shdw" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show report</div>
+
+                    <span>{{signalingPathwaysGeneNum}}</span>
+                    <span>{{missingGeneNum}}</span>
+                    <span>{{translatedGeneNum}}</span>
+                    <span>{{untranslatedGeneNum}}</span>
                 </div>
                 <jso-network-viewer id="networkViewer" style="height:calc(100% - 27px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar disable-context-menu on-leftclickvertex="handleNetworkViewerVertexClick"></jso-network-viewer>
             </div>
@@ -425,7 +425,20 @@
                 },
                 _resultFileInitNameMap: {
                     type: Object
-                }
+                },
+
+                signalingPathwaysGeneNum: {
+                    type: String
+                },
+                missingGeneNum: {
+                    type: String
+                },
+                translatedGeneNum: {
+                    type: String
+                },
+                untranslatedGeneNum: {
+                    type: String
+                },
             },
             handleBackButton: function() {
                 this.clean();
@@ -457,23 +470,8 @@
                 return a.name.localeCompare(b.name)
             },
             handleReportButton: function(e) {
-                if (this.$.reportButton.dataset.report != null) {
-                    this.$.reportPanel.show();
-                } else {
-                    this.$.reportPanel.hide();
-                }
-            },
-            checkReport: function() {
-                if (this.reportFile != null) {
-                    var attr = this.reportFile.attributes;
-                    if (attr.pathact.geneList != null) {
-                        this.$.reportButton.setAttribute('data-report', "");
-                    } else {
-                        this.$.reportButton.removeAttribute('data-report');
-                    }
-                } else {
-                    this.$.reportButton.removeAttribute('data-report');
-                }
+                var me = this;
+                this.$.reportPanel.show();
             },
             handleGeneDrugListChanged: function(e) {
                 this._updateGeneListVerticesStroke();
@@ -503,18 +501,6 @@
             },
             _init: function() {
                 var me = this;
-                // this._openRemoteFile('./pathway_list.json', function(content) {
-                //     var pathwayList = [];
-                //     var pwMap = JSON.parse(content);
-                //     for (key in pwMap) {
-                //         pathwayList.push({
-                //             title: pwMap[key],
-                //             name: key
-                //         });
-                //     }
-                //     me.set('pathwayList', pathwayList);
-                // });
-
                 this._openRemoteFileArrayBuffer('./drugmap.json.gz', function(content) {
                     var map = JSON.parse(pako.ungzip(content, {
                         to: 'string'
@@ -559,7 +545,7 @@
                 this.$.networkViewer.startOver();
                 this.loading = false;
                 this.$.geneSearch.clean();
-                this.checkReport();
+                this._hideKoControl();
             },
             jobItemChanged: function(neo, old) {
                 if (neo) {
@@ -588,19 +574,6 @@
                                 me._loadPathwayList(JSON.parse(content));
                                 me.loading = false;
                             });
-                            me._getFileContent(me._resultFileNameMap['report.xml'].id, function(content) {
-                                console.log(content);
-                                if (content.indexOf('ko_update') != -1) {
-                                    var result = document.createElement('jso-' + 'pathways' + '-result');
-                                    var el = me.$.reportPanelContainer.querySelector('jso-pathways-result');
-                                    if (el != null) {
-                                        Polymer.dom(me.$.reportPanelContainer).removeChild(el);
-                                    }
-                                    result.set('job', job);
-                                    Polymer.dom(me.$.reportPanelContainer).appendChild(result);
-                                    me._loadInputGenes();
-                                }
-                            });
                             me.set('reportFile', me._resultFileNameMap['report.xml']);
                             var attr = me.reportFile.attributes;
                             if (attr.pathact != null && attr.pathact.geneList != null) {
@@ -612,8 +585,10 @@
                                 me._loadGeneSearchDrugList(drugList);
                                 me._loadGeneSearchRelatedDrugList(relatedDrugList);
 
-                                me.checkReport();
                             }
+
+                            me._loadReport();
+                            me._loadInputGenes();
                         });
 
                     });
@@ -803,7 +778,6 @@
                     this.set('_inputGeneList', []);
                     this.set('selectedPathway', null);
                     this.$.geneSearch.clean();
-                    this.$.drugSearch.clean();
                     this.$.networkViewer.startOver();
 
                     /**/
@@ -820,7 +794,8 @@
                         me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
                             me._loadPathwayList(JSON.parse(content));
                             me.loading = false;
-                            me.checkReport();
+                            me._loadReport();
+                            me._loadInputGenes();
                         });
                     };
                     // this.loading = true;
@@ -849,13 +824,13 @@
                                 var da = gene.drugactions[j];
                                 dv *= da.drugvalue;
                             }
-                            value = dv;
+                            value = dv + "\t" + "drug";
                         } else {
-                            var value = gene.value;
+                            value = gene.value + "\t" + "user";
                         }
                         for (var j = 0; j < names.length; j++) {
                             var name = names[j];
-                            auxMap[name] = value
+                            auxMap[name] = value;
                         }
                     }
 
@@ -872,7 +847,7 @@
                         } else {
                             var value = gene.value;
                         }
-                        auxMap[gene.name] = value
+                        auxMap[gene.name] = value + "\t" + "drug";
                     }
 
                     var ko_file_lines = [];
@@ -881,6 +856,7 @@
                     }
                     var ko_file_content = ko_file_lines.join('\n') + '\n';
                     if (ko_file_content.trim() != "") {
+                        // console.log(ko_file_content);
                         this._updateGenes(ko_file_content);
                     }
                 }
@@ -913,22 +889,9 @@
                         me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
                             me._loadPathwayList(JSON.parse(content));
                             me.loading = false;
-
-                            me._getFileContent(me._resultFileNameMap['report.xml'].id, function(content) {
-                                console.log(content);
-                                if (content.indexOf('ko_update') != -1) {
-                                    var result = document.createElement('jso-' + 'pathways' + '-result');
-                                    var el = me.$.reportPanelContainer.querySelector('jso-pathways-result');
-                                    if (el != null) {
-                                        Polymer.dom(me.$.reportPanelContainer).removeChild(el);
-                                    }
-                                    result.set('job', me.jobItem);
-                                    Polymer.dom(me.$.reportPanelContainer).appendChild(result);
-                                    me._loadInputGenes();
-                                    me.checkReport();
-                                }
-                            });
                         });
+                        me._loadReport();
+                        me._loadInputGenes();
                     };
                     this.loading = true;
                     xhr.send(formData);
@@ -1059,50 +1022,31 @@
                 request.responseType = 'arraybuffer';
                 request.send();
             },
-
-            // _initGeneSearch: function() {
-            //     var search = function(query, cb) {
-            //         CellBaseManager.get({
-            //             species: 'hsapiens',
-            //             category: 'feature',
-            //             subCategory: 'id',
-            //             query: query.toUpperCase(),
-            //             resource: 'starts_with',
-            //             params: {
-            //                 limit: 10
-            //             },
-            //             async: true,
-            //             success: function(data, textStatus, jqXHR) {
-            //                 if (data.response != null && data.response.length > 0 && data.response[0].result != null) {
-            //                     cb(data.response[0].result);
-            //                 } else {
-            //                     cb([]);
-            //                 }
-            //             },
-            //             error: function() {
-            //                 cb([]);
-            //             }
-            //         });
-            //     };
-            //     var parse = function(results) {
-            //         var items = [];
-            //         for (var i = 0; i < results.length; i++) {
-            //             var r = results[i];
-            //             items.push(r.name);
-            //         }
-            //         return items;
-            //     };
-            //     this.$.geneSearch.setSearchFunction(search);
-            //     this.$.geneSearch.setParseFunction(parse);
-            //     // this.$.knockoutGenesSearch.setSearchFunction(search);
-            //     // this.$.knockoutGenesSearch.setParseFunction(parse);
-            // },
             _loadInputGenes: function() {
                 var me = this;
                 this._getFileContent(this._resultFileNameMap['ko.txt'].id, function(content) {
                     var parsedContent = me._parseTabularFile(content);
                     me.set('_inputGeneList', parsedContent.data);
                 });
+            },
+            _loadReport: function() {
+                var me = this;
+                // this._getFileContent(me._resultFileNameMap['report.xml'].id, function(content) {
+                var result = document.createElement('jso-' + 'pathways' + '-result');
+                var el = me.$.reportPanelContainer.querySelector('jso-pathways-result');
+                if (el != null) {
+                    Polymer.dom(me.$.reportPanelContainer).removeChild(el);
+                }
+                result.set('job', me.jobItem);
+                Polymer.dom(me.$.reportPanelContainer).appendChild(result);
+
+                // var lines = content.split('\n');
+                // Preprocessing
+                // <span>{{signalingPathwaysGeneNum}}</span>
+                // <span>{{missingGeneNum}}</span>
+                // <span>{{translatedGeneNum}}</span>
+                // <span>{{untranslatedGeneNum}}</span>
+                // });
             },
             _parseTabularFile: function(textContent) {
                 var lines = textContent.split('\n');
