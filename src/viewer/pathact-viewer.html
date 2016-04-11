@@ -734,31 +734,49 @@
                 });
             },
             _updateGeneListVerticesStroke: function() {
-                var v, name;
+                var v, name, names;
                 if (this.$.networkViewer.vertices != null) {
 
                     var geneList, relatedGeneList;
                     geneList = this.$.geneSearch.selectedGeneList;
                     relatedGeneList = this.$.geneSearch.relatedGeneList;
+                    var geneMap = {};
+                    var relatedGeneMap = {};
+
+                    if (Array.isArray(relatedGeneList)) {
+                        for (var i = 0; i < relatedGeneList.length; i++) {
+                            name = relatedGeneList[i].name;
+                            relatedGeneMap[name] = true;
+                            names = name.split(' ');
+                            for (var j = 0; j < names.length; j++) {
+                                var n = names[j];
+                                relatedGeneMap[n] = true;
+                            }
+                        }
+                    }
+                    for (var i = 0; i < geneList.length; i++) {
+                        name = geneList[i].name;
+                        geneMap[name] = true;
+                        names = name.split(' ');
+                        for (var j = 0; j < names.length; j++) {
+                            var n = names[j];
+                            geneMap[n] = true;
+                        }
+                    }
 
                     for (var i = 0; i < this.$.networkViewer.vertices.length; i++) {
                         v = this.$.networkViewer.vertices[i];
                         v.renderer.set('strokeSize', 2);
                         v.renderer.set('strokeColor', '#888888');
 
-                        if (Array.isArray(relatedGeneList)) {
-                            for (var j = 0; j < relatedGeneList.length; j++) {
-                                name = relatedGeneList[j].name;
-                                if (v.attributes['label'].indexOf(name) != -1) {
-                                    v.renderer.set('strokeSize', 6);
-                                    v.renderer.set('strokeColor', '#7acb1b');
-                                }
+                        names = v.attributes['label'].split(' ');
+                        for (var j = 0; j < names.length; j++) {
+                            var n = names[j];
+                            if (relatedGeneMap[n] == true) {
+                                v.renderer.set('strokeSize', 6);
+                                v.renderer.set('strokeColor', '#7acb1b');
                             }
-                        }
-
-                        for (var j = 0; j < geneList.length; j++) {
-                            name = geneList[j].name;
-                            if (v.attributes['label'].indexOf(name) != -1) {
+                            if (geneMap[n] == true) {
                                 v.renderer.set('strokeSize', 6);
                                 v.renderer.set('strokeColor', '#cf1c1c');
                             }
