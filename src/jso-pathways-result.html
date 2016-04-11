@@ -228,6 +228,8 @@
                 var el = document.createElement('div');
                 var i = document.createElement('i');
                 i.classList.add('fa', 'fa-th');
+                var idown = document.createElement('i');
+                idown.classList.add('fa', 'fa-download');
 
                 var a = document.createElement('a');
                 a.innerHTML = outEl.getAttribute('title');
@@ -244,6 +246,7 @@
                 });
 
                 el.appendChild(i);
+                el.appendChild(idown);
                 el.appendChild(a);
                 el.appendChild(table);
                 this._addTag(el, outEl);
