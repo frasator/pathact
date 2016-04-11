@@ -243,14 +243,15 @@
                 <div class="horizontal layout center" style="height:25px;">
                     <div style="margin-left:10px;">
                         <label class="jso">Name:
-                        </label>{{jobItem.name}} - {{computeInputFileName(jobItem)}}</div>
+                        </label>{{jobItem.name}} - {{computeInputFileName(jobItem)}}
+                    </div>
+                    <!-- <span>{{signalingPathwaysGeneNum}}</span> -->
+                    <!-- <span style="margin-left:20px;">{{missingGeneNum}}</span>,
+                    <span style="margin-left:10px;">{{translatedGeneNum}}</span>,
+                    <span style="margin-left:10px;">{{untranslatedGeneNum}}</span> -->
                     <div class="flex"></div>
                     <div id="reportButton" on-click="handleReportButton" class="jso-btn jso-btn-shdw" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show report</div>
 
-                    <span>{{signalingPathwaysGeneNum}}</span>
-                    <span>{{missingGeneNum}}</span>
-                    <span>{{translatedGeneNum}}</span>
-                    <span>{{untranslatedGeneNum}}</span>
                 </div>
                 <jso-network-viewer id="networkViewer" style="height:calc(100% - 27px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar disable-context-menu on-leftclickvertex="handleNetworkViewerVertexClick"></jso-network-viewer>
             </div>
@@ -858,6 +859,8 @@
                     if (ko_file_content.trim() != "") {
                         // console.log(ko_file_content);
                         this._updateGenes(ko_file_content);
+                    } else {
+                        alert("Please, add at least one gene.")
                     }
                 }
             },
@@ -1031,7 +1034,6 @@
             },
             _loadReport: function() {
                 var me = this;
-                // this._getFileContent(me._resultFileNameMap['report.xml'].id, function(content) {
                 var result = document.createElement('jso-' + 'pathways' + '-result');
                 var el = me.$.reportPanelContainer.querySelector('jso-pathways-result');
                 if (el != null) {
@@ -1040,12 +1042,28 @@
                 result.set('job', me.jobItem);
                 Polymer.dom(me.$.reportPanelContainer).appendChild(result);
 
-                // var lines = content.split('\n');
-                // Preprocessing
-                // <span>{{signalingPathwaysGeneNum}}</span>
-                // <span>{{missingGeneNum}}</span>
-                // <span>{{translatedGeneNum}}</span>
-                // <span>{{untranslatedGeneNum}}</span>
+                // this._getFileContent(me._resultFileNameMap['report.xml'].id, function(content) {
+                //     var parser = new DOMParser();
+                //     var reportXML = parser.parseFromString(content, "text/xml");
+                //     var outputParamsEl = reportXML.querySelector('output-params');
+                //     var outputParams = outputParamsEl.childNodes;
+                //     for (var i = 0; i < outputParams.length; i++) {
+                //         var outEl = outputParams[i];
+                //         if (outEl.tagName != null) {
+                //             // if (outEl.getAttribute('key') == "Number of genes in signaling pathways") {
+                //             //     me.signalingPathwaysGeneNum = outEl.getAttribute('value')
+                //             // }
+                //             if (outEl.getAttribute('key') == "Number of missing genes in sample") {
+                //                 me.missingGeneNum = "Missing genes in sample" + ": " + outEl.getAttribute('value')
+                //             }
+                //             if (outEl.getAttribute('key') == "Number of properly translated gene ids") {
+                //                 me.translatedGeneNum = "Properly translated genes" + ": " + outEl.getAttribute('value')
+                //             }
+                //             if (outEl.getAttribute('key') == "Number of untranslated gene ids") {
+                //                 me.untranslatedGeneNum = "Untranslated genes" + ": " + outEl.getAttribute('value')
+                //             }
+                //         }
+                //     }
                 // });
             },
             _parseTabularFile: function(textContent) {
