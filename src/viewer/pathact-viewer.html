@@ -601,6 +601,7 @@
                 console.log(o);
                 var pwChangedCount = 0;
                 var pathwayList = [];
+                var selectedPathway;
                 for (var i = 0; i < o.length; i++) {
                     var pw = o[i];
                     // console.log(pw.haschanged);
@@ -608,12 +609,16 @@
                         pwChangedCount++;
                     }
                     pathwayList.push(pw);
+
+                    if (this.selectedPathway != null && this.selectedPathway.id == pw.id) {
+                        selectedPathway = pw;
+                    }
                 }
                 this.set('pwChangedCount', pwChangedCount);
                 o.sort(this._pwSortFn);
                 this.set('pathwayList', o);
-                if (this.selectedPathway != null) {
-                    this._selectPathway(this.selectedPathway);
+                if (selectedPathway != null) {
+                    this._selectPathway(selectedPathway);
                 } else {
                     this._selectPathway(o[0]);
                 }
