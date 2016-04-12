@@ -113,8 +113,7 @@
                     <br> Please click
                     <a id="url" href="http://pathact.babelomics.org/doc/doku.php?id=data_matrix_expression_file" target="_blank">
                         here <i class="fa fa-external-link"></i>
-                    </a>
-                    to read more about the input file format.
+                    </a> to read more about the input file format.
                 </div>
                 <div hidden id="inputFileError" class="jso-note jso-note-error" style="margin:10px 40px">
                     No expression matrix file selected.
@@ -205,6 +204,14 @@
             },
             clean: function() {
                 this.$.nameInput.value = '';
+                this.$.browser.reset();
+                this.set('inputFile', null);
+                this.set('inputSamples', []);
+                this.$.sampleSelect.selected = null;
+                this.$.logarithmCheckbox.checked = false;
+
+                this.$.inputFileError.setAttribute('hidden', '');
+                this.$.nameError.setAttribute('hidden', '');
             },
             /**/
             handleOpenBrowser: function() {
@@ -270,10 +277,10 @@
                     error = true;
                 }
                 if (error === false) {
-                    this._launchInit(this.inputFile, this.$.nameInput.value.replace(/\s/g, '-'));
+                    this._launchInit(this.inputFile, this.$.nameInput.value.replace(/\s/g, '-'), false);
                 }
             },
-            _launchInit: function(file, jobName) {
+            _launchInit: function(file, jobName, isExample) {
                 var me = this;
                 if (this.$.browser.selectedStudy != null) {
                     var studyId = this.$.browser.selectedStudy.study.id
@@ -289,12 +296,14 @@
                 }
                 console.log(split.join('/'));
                 this._createFolder(studyId, path, folderName, function(folder) {
-                    me._launchpathactInit(studyId, file, folder, jobName, function(job) {
-                        me.clean();
+                    me._launchpathactInit(studyId, file, folder, jobName, isExample, function(job) {
+                        if(!isExample){
+                            me.clean();
+                        }
                     });
                 });
             },
-            _launchpathactInit: function(studyId, file, workingFolder, jobName, cb) {
+            _launchpathactInit: function(studyId, file, workingFolder, jobName, isExample, cb) {
                 var query = {
                     sid: Cookies("bioinfo_sid"),
                     toolId: 'pathways',
@@ -306,7 +315,7 @@
                     exp_file: file.id,
                     working_folder: workingFolder.id
                 };
-                if (this.$.sampleSelect.selected != null) {
+                if (!isExample && this.$.sampleSelect.selected != null) {
                     query["sample"] = this.$.sampleSelect.selected.name
                 }
                 if (this.$.logarithmCheckbox.checked == true) {
@@ -329,9 +338,9 @@
                 this._openRemoteFile('./pathact_example.txt', function(content) {
                     me._uploadFile(studyId, '', 'pathact_example.txt', content, 'DATAMATRIX_EXPRESSION', function(file, msg, result) {
                         if (file != null) {
-                            me._launchInit(file, 'Example');
+                            me._launchInit(file, 'Example', true);
                         } else {
-                            me._launchInit(result[0], 'Example')
+                            me._launchInit(result[0], 'Example', true)
                         }
                     });
                 });

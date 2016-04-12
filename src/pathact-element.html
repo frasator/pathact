@@ -399,6 +399,9 @@
                 request.open("GET", filepath);
                 request.send();
             },
+            selectedOptionChanged:function(){
+                this.$.pathactForm.clean();
+            }
 
         });
     </script>
