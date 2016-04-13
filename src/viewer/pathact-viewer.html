@@ -66,6 +66,7 @@
             top: 0;
             left: 0;
             width: 100px;
+            /*width: 200px;*/
             box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2);
             background-color: var(--light-primary-color);
             border: 1px solid var(--divider-color);
@@ -292,7 +293,8 @@
                     <template is="dom-repeat" items="{{_inputGeneList}}">
                         <div>
                             <span>{{item.gene}}</span> -
-                            <span>{{item.value}}</span>
+                            <span>{{item.value}}</span> -
+                            <span>{{item.defined}}</span>
                         </div>
                     </template>
                 </div>
@@ -300,6 +302,14 @@
             </div>
 
             <div id="koControl">
+                <!-- <label class="jso" style="margin-bottom:10px;">Genes activity value:</label>
+                <template is="dom-repeat" items="{{koInputValues}}">
+                    <div class="horizontal layout" style="margin-bottom:2px;">
+                        <div class="jso-txt" style="width:70px;text-align:right;">{{item.id}}:</div>
+                        <input class="jso flex" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{item.value::input}}" />
+                    </div>
+                </template> -->
+
                 <label class="jso">Activity value:</label>
                 <input class="jso" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
             </div>
@@ -346,6 +356,12 @@
                 defaultKoValue: {
                     type: Number,
                     value: 0.1
+                },
+                koInputValues: {
+                    type: Array,
+                },
+                defaultKoValues: {
+                    type: Array,
                 },
                 lastSelectedNode: {
                     type: Object,
@@ -998,13 +1014,43 @@
                 var v = this.$.networkViewer.graph.getVertexById(e.detail.vertexId);
                 this.lastSelectedNode = v.attributes.label;
 
-                if (v.id.indexOf("_func") == -1) {
+                if (v.id.indexOf("_func") == -1 && v.attributes.shape != "circle") {
+
+                    // var koInputValues = [], aux;
+                    // var gids = v.attributes.genesList.split(',');
+                    // for (var i = 0; i < gids.length; i++) {
+                    //     var gid = gids[i];
+                    //     if (gid != '/') {
+                    //         aux = {
+                    //             value: .2, //TODO
+                    //             id: gid,
+                    //             name: gid //TODO
+                    //         }
+                    //
+                    //         /*******/
+                    //         var g = this.$.geneSearch.selectedGeneList[this.$.geneSearch.selectedGeneMap[aux.name]];
+                    //         if (g != null) {
+                    //             aux.value = g.value;
+                    //         } else {
+                    //             console.log("!!!!!!!!!!!! CHECK THIS PAKOOOO");
+                    //             aux.value = parseFloat(this._pathwayInitExpression[aux.name]).toFixed(2);
+                    //         }
+                    //         /*******/
+                    //
+                    //         koInputValues.push(aux);
+                    //     }
+                    //
+                    // }
+                    // this.set("koInputValues", koInputValues);
+
+                    /*****/
                     var g = this.$.geneSearch.selectedGeneList[this.$.geneSearch.selectedGeneMap[this.lastSelectedNode]];
                     if (g != null) {
                         this.koInputValue = g.value;
                     } else {
                         this.koInputValue = parseFloat(this._pathwayInitExpression[v.id]).toFixed(2);
                     }
+                    /*****/
 
                     var nvbcr = this.$.networkViewer.getBoundingClientRect();
                     this._showKoControl(e.detail.x + nvbcr.left + 15, e.detail.y + nvbcr.top + 15);
@@ -1052,7 +1098,7 @@
                 var me = this;
                 this._getFileContent(this._resultFileNameMap['ko.txt'].id, function(content) {
                     var parsedContent = me._parseTabularFile(content);
-                    me.set('_inputGeneList', parsedContent.data);
+                    me.set('_inputGeneList', parsedContent);
                 });
             },
             _loadReport: function() {
@@ -1093,44 +1139,20 @@
                 var lines = textContent.split('\n');
                 if (lines.length > 0) {
                     var line, fields, field, data = [],
-                        columns = [],
                         obj;
-                    var firstLine = lines[0].replace('#', '');
-                    fields = firstLine.split('\t');
-                    for (var i = 0; i < fields.length; i++) {
-                        field = fields[i];
-                        field = field.trim();
-                        var name = field.replace(/ /gi, '_');
-                        var width = 150;
-                        if (i === 0) {
-                            width = 400;
-                        }
-                        columns.push({
-                            name: name,
-                            title: name,
-                            width: width
-                        });
-                    }
 
-                    if (columns.length) {
-                        for (var i = 1; i < lines.length; i++) {
-                            line = lines[i];
-                            if (line != '') {
-                                fields = line.split('\t');
-                                obj = {};
-                                for (var j = 0; j < fields.length; j++) {
-                                    field = fields[j].trim();
-                                    column = columns[j];
-                                    obj[column.name] = field;
-                                }
-                                data.push(obj);
-                            }
+                    for (var i = 0; i < lines.length; i++) {
+                        line = lines[i];
+                        if (line.length > 0) {
+                            fields = line.split('\t');
+                            data.push({
+                                gene: fields[0],
+                                value: fields[1],
+                                defined: fields[2]
+                            });
                         }
                     }
-                    return {
-                        columns: columns,
-                        data: data
-                    };
+                    return data;
                 }
             }
         });

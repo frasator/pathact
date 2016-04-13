@@ -114,8 +114,8 @@
             },
             processReportFile: function(fileContent) {
                 /**/
-                    fileContent = fileContent.replace('Path impact','Circuit impact');
-                    fileContent = fileContent.replace('Path changes','Circuit changes');
+                fileContent = fileContent.replace('Path impact', 'Circuit impact');
+                fileContent = fileContent.replace('Path changes', 'Circuit changes');
                 /**/
                 var parser = new DOMParser();
                 var reportXML = parser.parseFromString(fileContent, "text/xml");
@@ -332,21 +332,37 @@
                     var line, fields, field, data = [],
                         columns = [],
                         obj;
-                    var firstLine = lines[0].replace('#', '');
-                    fields = firstLine.split('\t');
-                    for (var i = 0; i < fields.length; i++) {
-                        field = fields[i];
-                        field = field.trim();
-                        var name = field.replace(/ /gi, '_');
-                        var width = 150;
-                        if (i === 0) {
-                            width = 400;
+
+                    if (lines[0].charAt(0) == '#') {
+                        var firstLine = lines[0].replace('#', '');
+                        fields = firstLine.split('\t');
+                        for (var i = 0; i < fields.length; i++) {
+                            field = fields[i];
+                            field = field.trim();
+                            var name = field.replace(/ /gi, '_');
+                            var width = 150;
+                            if (i === 0) {
+                                width = 400;
+                            }
+                            columns.push({
+                                name: name,
+                                title: name.replace('path', 'circuit'),
+                                width: width
+                            });
                         }
-                        columns.push({
-                            name: name,
-                            title: name.replace('path','circuit'),
-                            width: width
-                        });
+                    } else {
+                        var colCount = lines[0].split('\t').length;
+                        for (var i = 0; i < colCount; i++) {
+                            var width = 150;
+                            if (i === 0) {
+                                width = 400;
+                            }
+                            columns.push({
+                                name: i.toString(),
+                                title: "Column " + i.toString(),
+                                width: width
+                            });
+                        }
                     }
 
                     if (columns.length) {
