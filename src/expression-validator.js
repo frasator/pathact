@@ -28,7 +28,7 @@ ExpressionValidator.prototype.isHeaderLine = function () {
 }
 ExpressionValidator.prototype.validateEnd = function () {
     if (this.numLines < 2) {
-        this.addLog("error", "The file only contains one line.");
+        this.addLog("error", "The file contains one line or less.");
     }
 }
 

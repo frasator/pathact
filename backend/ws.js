@@ -73,8 +73,10 @@ if (cluster.isMaster) {
     });
 
     app.post('/pathact/update', createFolder, upload.fields(submitFields), function (req, res, next) {
+        console.log("*******  UPDATE START");
         console.log(req._job_output_folder);
         var args = [];
+
         args.push('--ko_file ' + req.files.ko_file[0].path);
         args.push('--working_folder ' + req.body.working_folder);
         args.push('--fold_change ' + req.body.fold_change);
@@ -90,54 +92,64 @@ if (cluster.isMaster) {
             console.log('stderr: ' + stderr);
 
             res.setHeader('Content-Type', 'application/json');
-            var response = {
-                stdout: stdout,
-                stderr: stderr
-            };
-            res.send(response);
-
-            if (error !== null) {
-                var msg = 'exec error: ' + error;
-                console.log(msg);
+            if (error == null) {
+                var response = {
+                    stdout: stdout,
+                    stderr: stderr
+                };
+                console.log("*******  UPDATE END");
+                res.send(response);
+            } else {
+                // var msg = 'exec error: ' + error;
+                // console.log(msg);
+                console.log("*******  UPDATE END");
                 res.send({
-                    error: msg
+                    error: error
                 })
             }
         });
     });
 
     app.get('/pathact/clear', function (req, res, next) {
+        console.log("*******  CLEAR START");
         var folder = req.query.working_folder;
         var commands = [
             'cp ' + folder + 'sifs4CellMaps_init/* ' + folder + 'sifs4CellMaps/',
             'cp ' + folder + 'sifs4CellMaps_init/path_info.json ' + folder,
+            'cp ' + folder + 'sifs4CellMaps_init/report.xml ' + folder,
             'cp /dev/null ' + folder + 'ko.txt'
         ];
-        var command = commands.join(' && ');
+        // var command = commands.join(' && ');
 
-        console.log('+++++++')
-        console.log(command)
-        console.log('+++++++')
+        // console.log('+++++++')
+        // console.log(command)
+        // console.log('+++++++')
 
-        exec(command, function (error, stdout, stderr) {
-            console.log('stdout: ' + stdout);
-            console.log('stderr: ' + stderr);
+        var commandNum = commands.length;
+        for (var i = 0; i < commands.length; i++) {
+            var command = commands[i];
+            exec(command, function (error, stdout, stderr) {
+                commandNum--;
+                console.log('stdout: ' + stdout);
+                console.log('stderr: ' + stderr);
 
-            res.setHeader('Content-Type', 'application/json');
-            var response = {
-                stdout: stdout,
-                stderr: stderr
-            };
-            res.send(response);
+                // var response = {
+                //     stdout: stdout,
+                //     stderr: stderr
+                // };
 
-            if (error !== null) {
-                var msg = 'exec error: ' + error;
-                console.log(msg);
-                res.send({
-                    error: msg
-                })
-            }
-        });
+                // if (error !== null) {
+                //     var msg = 'exec error: ' + error;
+                //     console.log(msg);
+                // }
+
+                if (commandNum === 0) {
+                    console.log("*******  CLEAR END");
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send({});
+                }
+            });
+        }
     });
 
     function createFolder(req, res, next) {

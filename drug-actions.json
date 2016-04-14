@@ -3,13 +3,13 @@
     "value": 0.1
 }, {
     "name": "activator",
-    "value": 1
+    "value": 2
 }, {
     "name": "adduct",
     "value": 0.1
 }, {
     "name": "agonist",
-    "value": 1
+    "value": 2
 }, {
     "name": "allosteric modulator",
     "value": 0.1
@@ -63,7 +63,7 @@
     "value": 0.1
 }, {
     "name": "inducer",
-    "value": 1
+    "value": 2
 }, {
     "name": "inhibitor",
     "value": 0.1
@@ -111,19 +111,19 @@
     "value": 0.1
 }, {
     "name": "partial agonist",
-    "value": 0.5
+    "value": 1
 }, {
     "name": "partial antagonist",
-    "value": 0.5
+    "value": 1
 }, {
     "name": "positive allosteric modulator",
-    "value": 1
+    "value": 2
 }, {
     "name": "positive modulator",
-    "value": 1
+    "value": 2
 }, {
     "name": "potentiator",
-    "value": 1
+    "value": 2
 }, {
     "name": "product of",
     "value": 0.1
@@ -132,7 +132,7 @@
     "value": 0.1
 }, {
     "name": "stimulator",
-    "value": 1
+    "value": 2
 }, {
     "name": "substrate",
     "value": 0.1

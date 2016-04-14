@@ -115,10 +115,16 @@
                     <i class="fa fa-sliders"></i> Settings
                 </div>
                 <div id="drugActionList" class="container flex" style="width:650px; padding:7px;">
-                    <label class="jso">Configure fold change:</label>
-                    <br>
-                    <div style="width:200px">
-                        <input id="foldChangeInput" class="jso" type="number" step="0.1" min="0" value="{{foldChange::input}}" on-change="handleFoldChange">
+                    <div class="horizontal layout">
+                        <div>
+                            <label class="jso">Configure fold change:</label>
+                            <br>
+                            <div style="width:200px">
+                                <input id="foldChangeInput" class="jso" type="number" step="0.1" min="0" value="{{foldChange::input}}" on-change="handleFoldChange">
+                            </div>
+                        </div>
+                        <div class="flex"></div>
+                        <div class="jso-btn jso-btn-shdw" on-click="handleResetDefaults">Reset defaults</div>
                     </div>
                     <br>
                     <label class="jso">Configure drug action weight:</label>
@@ -160,6 +166,11 @@
 
             <div id="menu" class="menu horizontal layout flex">
                 <div class="flex"></div>
+                <div show-on-login title="Settings" class="option" on-click="handleLoggedOnlyMenuOption" data-option="start" show-on-login>
+                    <i class="fa fa-rocket"></i>
+                    <span class="option-text">Jobs</span>
+                </div>
+                <div style="margin-left:3vw;"></div>
                 <div show-on-login title="Settings" class="option" on-click="handleLoggedOnlyMenuPanel" data-panel="configureDrugActionsPanel">
                     <i class="fa fa-sliders"></i>
                     <span class="option-text">Settings</span>
@@ -197,7 +208,7 @@
                         text: 'Data matrix expression',
                         validator: ExpressionValidator,
                         hint: 'Data matrix expression is a Tab-separated values file. This file has two columns if there is only one sample, and more than two columns if there are many samples. First line is a header and must contain the names of the samples. The first column correspond to gene/probe/protein Ids from (Ensembl gene, HGNC symbol, Entrez id, Affy HG U133A probeset, Affy HG U133B probeset, Affy HG U133-PLUS-2 probeset and Affy HTA 2.0), the next columns correspond to gene expression values in numeric format from each sample.',
-                        url:'http://pathact.babelomics.org/doc/doku.php?id=data_matrix_expression_file'
+                        url: 'http://pathact.babelomics.org/doc/doku.php?id=data_matrix_expression_file'
                     }]
                 },
                 allowedTools: {
@@ -246,35 +257,42 @@
 
                 var localActions = localStorage.getItem("pathact_actions");
                 if (localActions == null) {
-                    this._openRemoteFile('./drug-actions.json', function(content) {
-                        var allActions = JSON.parse(content);
-                        var nameMap = {};
-                        var actions = [];
-                        var actionsMap = {};
-                        for (var i = 0; i < allActions.length; i++) {
-                            var a = allActions[i];
-                            var n = a.name.toLowerCase();
-                            if (nameMap[n] !== true) {
-                                nameMap[n] = true;
-                                var obj = {
-                                    name: a.name,
-                                    value: a.value
-                                };
-                                actions.push(obj);
-                                actionsMap[n] = obj;
-                            }
-                        }
-                        me.set('drugActionList', actions);
-                        me.set('drugActionMap', actionsMap);
-                        localStorage.setItem("pathact_actions", JSON.stringify(actions));
-                        localStorage.setItem("pathact_actionsmap", JSON.stringify(actionsMap));
-                    });
+                    this.loadDrugActions();
                 } else {
                     var actions = JSON.parse(localActions);
                     var actionsMap = JSON.parse(localStorage.getItem("pathact_actionsmap"));
                     this.set('drugActionList', actions);
                     this.set('drugActionMap', actionsMap);
                 }
+            },
+            handleResetDefaults: function(e) {
+                this.loadDrugActions();
+            },
+            loadDrugActions: function() {
+                var me = this;
+                this._openRemoteFile('./drug-actions.json', function(content) {
+                    var allActions = JSON.parse(content);
+                    var nameMap = {};
+                    var actions = [];
+                    var actionsMap = {};
+                    for (var i = 0; i < allActions.length; i++) {
+                        var a = allActions[i];
+                        var n = a.name.toLowerCase();
+                        if (nameMap[n] !== true) {
+                            nameMap[n] = true;
+                            var obj = {
+                                name: a.name,
+                                value: a.value
+                            };
+                            actions.push(obj);
+                            actionsMap[n] = obj;
+                        }
+                    }
+                    me.set('drugActionList', actions);
+                    me.set('drugActionMap', actionsMap);
+                    localStorage.setItem("pathact_actions", JSON.stringify(actions));
+                    localStorage.setItem("pathact_actionsmap", JSON.stringify(actionsMap));
+                });
             },
             handleActionWeightChange: function() {
                 localStorage.setItem("pathact_actions", JSON.stringify(this.drugActionList));
@@ -285,7 +303,7 @@
                 }
                 localStorage.setItem("pathact_actionsmap", JSON.stringify(actionsMap));
                 this.set('drugActionMap', actionsMap);
-                this.$.pathactViewer._processDrugRelatedGenes();
+                this.$.pathactViewer.$.geneSearch._processDrugRelatedGenes();
             },
             handleFoldChange: function() {
                 var fc = localStorage.setItem("pathact_foldchange", this.$.foldChangeInput.value);
@@ -381,6 +399,9 @@
                 request.open("GET", filepath);
                 request.send();
             },
+            selectedOptionChanged:function(){
+                this.$.pathactForm.clean();
+            }
 
         });
     </script>

@@ -37,7 +37,7 @@
     </style>
     <template>
         <label class="jso"><i class="fa fa-flash" style="color:#cf1c1c"></i> Add genes:</label>
-        <jso-search id="geneSearch" placeholder="Gene search..." on-item-select="handleGeneSearchSelect"></jso-search>
+        <jso-search id="geneSearch" placeholder="Gene search..." on-item-select="handleGeneSearchSelect" empty-message="No genes found in the available signaling pathways."></jso-search>
         <div id="selectedGeneList" class="list with-search flex-2">
             <template is="dom-repeat" items="{{selectedGeneList}}">
                 <pathact-gene-option name="{{item.name}}" value="{{item.value}}" manual="{{item.manual}}" drugactions="{{item.drugactions}}" on-remove="handleRemoveGene" on-change="handleChangeGene"></pathact-gene-option>
@@ -51,7 +51,7 @@
         </div>
 
         <label class="jso" style="margin-top:10px;"><i class="fa fa-flask" style="color:#7acb1b"></i> Add drugs:</label>
-        <jso-search id="drugSearch" placeholder="Drug search..." display-key="n" min-query-length="3" on-item-select="handleDrugSearchSelect"></jso-search>
+        <jso-search id="drugSearch" placeholder="Drug search..." display-key="n" min-query-length="3" on-item-select="handleDrugSearchSelect" empty-message="No drugs found."></jso-search>
         <div id="selectedDrugList" class="list with-search flex" style="height:100px;">
             <template is="dom-repeat" items="{{selectedDrugList}}">
                 <pathact-drug-item drug="{{item}}" on-remove-drug-item="handleRemoveDrug"></pathact-drug-item>
