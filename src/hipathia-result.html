@@ -1,4 +1,11 @@
-<dom-module id="jso-pathways-result">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<script src="../bower_components/network-viewer/conf/config.js"></script>
+<link rel="import" href="../bower_components/network-viewer/network-viewer.html">
+
+<dom-module id="hipathia-result">
+    <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning"></style>
     <style>
         :host {
             display: block;
@@ -64,8 +71,8 @@
             margin-bottom: 30px;
         }
 
-        .table > jso-table {
-            width: 800px;
+        .table > stv-table {
+            width: 1000px;
             margin-top: 10px;
             margin-bottom: 20px;
             border: 1px solid var(--divider-color);
@@ -80,8 +87,7 @@
     </template>
     <script>
         Polymer({
-            is: 'jso-pathways-result',
-            behaviors: [JsoOpencgaManagerBehavior],
+            is: 'hipathia-result',
             properties: {
                 job: {
                     type: Object,
@@ -95,9 +101,38 @@
             jobChanged: function(neo, old) {
                 var me = this;
                 if (neo) {
-                    var fileIds = this.job.input.concat(this.job.output);
-                    this._getFilesBeans(fileIds, function(files) {
-                        me.processResultFiles(files);
+                    var files = [];
+                    var flag1 = false,
+                        flag2 = false;
+                    var end = function() {
+                        if (flag1 == true && flag2 == true) {
+                            me.processResultFiles(files);
+                        }
+                    }
+
+                    SteviaManager.getPlainFolderFiles(neo.folder._id, function(files1) {
+                        files = files.concat(files1);
+                        var inputFileIds = [];
+                        if (neo.options["exp_file"].mode == "id") {
+                            SteviaManager.getPlainFolderFiles(neo.options["exp_file"].value, function(files2) {
+                                files = files.concat(files2);
+                                flag1 = true;
+                                end();
+                            });
+                        } else {
+                            flag1 = true;
+                            end();
+                        }
+                        if (neo.options["design_file"] != null && neo.options["design_file"].mode == "id") {
+                            SteviaManager.getPlainFolderFiles(neo.options["design_file"].value, function(files3) {
+                                files = files.concat(files3);
+                                flag2 = true;
+                                end();
+                            });
+                        } else {
+                            flag2 = true;
+                            end();
+                        }
                     });
                 }
             },
@@ -106,17 +141,17 @@
                 this.fileNameMap = {};
                 for (var i = 0; i < files.length; i++) {
                     var f = files[i];
-                    this.fileNameMap[f.name] = f;
+                    if (this.fileNameMap[f.name] != null) {
+                        this.fileNameMap[f.path] = f;
+                    } else {
+                        this.fileNameMap[f.name] = f;
+                    }
                 }
-                this._getFileContent(this.fileNameMap['report.xml'].id, function(content) {
+                SteviaManager.getFileContent(this.fileNameMap['report.xml']._id, function(content) {
                     me.processReportFile(content);
                 });
             },
             processReportFile: function(fileContent) {
-                /**/
-                fileContent = fileContent.replace('Path impact', 'Circuit impact');
-                fileContent = fileContent.replace('Path changes', 'Circuit changes');
-                /**/
                 var parser = new DOMParser();
                 var reportXML = parser.parseFromString(fileContent, "text/xml");
                 var inputParamsEl = reportXML.querySelector('input-params');
@@ -163,7 +198,7 @@
 
                 var a = document.createElement('a');
                 a.innerHTML = outEl.getAttribute('title');
-                a.setAttribute('href', this._getFileURL(this.fileNameMap[name].id));
+                a.setAttribute('href', SteviaManager.getFileURL(this.fileNameMap[name]._id));
 
                 el.appendChild(i);
                 el.appendChild(a);
@@ -210,10 +245,10 @@
 
                 var a = document.createElement('a');
                 a.innerHTML = outEl.getAttribute('title');
-                a.setAttribute('href', this._getFileURL(this.fileNameMap[name].id));
+                a.setAttribute('href', SteviaManager.getFileURL(this.fileNameMap[name]._id));
 
                 var img = document.createElement('img');
-                img.setAttribute('src', this._getFileURL(this.fileNameMap[name].id));
+                img.setAttribute('src', SteviaManager.getFileURL(this.fileNameMap[name]._id));
 
                 el.appendChild(i);
                 el.appendChild(a);
@@ -228,25 +263,22 @@
                 var el = document.createElement('div');
                 var i = document.createElement('i');
                 i.classList.add('fa', 'fa-th');
-                var idown = document.createElement('i');
-                idown.classList.add('fa', 'fa-download');
 
                 var a = document.createElement('a');
                 a.innerHTML = outEl.getAttribute('title');
-                a.setAttribute('href', this._getFileURL(this.fileNameMap[name].id));
+                a.setAttribute('href', SteviaManager.getFileURL(this.fileNameMap[name]._id));
 
-                var table = document.createElement('jso-table');
+                var table = document.createElement('stv-table');
                 table.setAttribute('enable-paging', '');
                 table.setAttribute('page-size', outEl.getAttribute('page-size'));
 
-                this._getFileContent(this.fileNameMap[name].id, function(content) {
+                SteviaManager.getFileContent(this.fileNameMap[name]._id, function(content) {
                     var parsedContent = me._parseTabularFile(content);
                     table.set('data', parsedContent.data);
                     table.set('columns', parsedContent.columns);
                 });
 
                 el.appendChild(i);
-                el.appendChild(idown);
                 el.appendChild(a);
                 el.appendChild(table);
                 this._addTag(el, outEl);
@@ -255,11 +287,13 @@
             _htmlTag: function(outEl) {
                 var me = this;
                 var name = outEl.getAttribute('file');
-                this._getFileContent(this.fileNameMap[name].id, function(content) {
+                var el = document.createElement('div');
+                SteviaManager.getFileContent(this.fileNameMap[name]._id, function(content) {
                     var parser = new DOMParser();
                     var doc = parser.parseFromString(content, "text/html");
-                    me._processHTML(doc, outEl);
+                    me._processHTML(doc, el);
                 });
+                this._addTag(el, outEl);
             },
 
             _processHTML: function(doc, outEl) {
@@ -280,7 +314,7 @@
                     var el = els[i];
                     var split = el.getAttribute('src').split('/');
                     var name = split[split.length - 1];
-                    el.setAttribute('src', this._getFileURL(this.fileNameMap[name].id));
+                    el.setAttribute('src', SteviaManager.getFileURL(this.fileNameMap[name]._id));
                 }
 
                 var scriptTextContent = indexScript.textContent;
@@ -297,13 +331,12 @@
                 domModule.appendChild(style);
                 domModule.appendChild(template);
 
-                var rndstr = Utils.randomString(15);
-                var elname = 'jso-pathways-result-' + rndstr;
+                var rndstr = Math.floor(Math.random() * (1000 - 9999 + 1)) + 1000;
+                var elname = 'stv-hipathia-result-gen' + rndstr;
                 domModule.register(elname);
 
                 var moduleConfig = {
                     is: elname,
-                    behaviors: [JsoOpencgaManagerBehavior],
                     ready: function() {
                         var me = this;
                         this.init(Polymer.dom(this.root));
@@ -320,8 +353,7 @@
 
                 Polymer(moduleConfig);
                 var res = document.createElement(elname);
-                res.classList.add(outEl.tagName);
-                Polymer.dom(this.root).appendChild(res);
+                outEl.appendChild(res);
             },
             _createReportHTMLElement: function() {
 
@@ -366,9 +398,9 @@
                     }
 
                     if (columns.length) {
-                        for (var i = 1; i < lines.length; i++) {
+                        for (var i = 0; i < lines.length; i++) {
                             line = lines[i];
-                            if (line != '') {
+                            if (line != '' && line.charAt(0) != '#') {
                                 fields = line.split('\t');
                                 obj = {};
                                 for (var j = 0; j < fields.length; j++) {

@@ -1,4 +1,7 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <dom-module id="pathact-drug-option">
+    <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning"></style>
     <style>
         :host {
             display: block;
@@ -16,7 +19,7 @@
         }
     </style>
     <template>
-        <label class="jso-control ">
+        <label class="stv-control" title$="{{drug.n}}">
             <input type="checkbox" checked$="{{drug.s}}" on-click="handleClick">
             <span class="name">{{drug.n}}</span>
         </label>
@@ -24,7 +27,6 @@
     <script>
         Polymer({
             is: 'pathact-drug-option',
-            behaviors: [JsoOpencgaManagerBehavior],
             properties: {
                 drug: {
                     type: Object

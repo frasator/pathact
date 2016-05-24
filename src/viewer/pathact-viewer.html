@@ -1,3 +1,8 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<script src="../../bower_components/network-viewer/conf/config.js"></script>
+<link rel="import" href="../../bower_components/network-viewer/network-viewer.html">
+
 <link rel="import" href="pathact-gene-search.html">
 
 <link rel="import" href="pathact-gene-option.html">
@@ -5,6 +10,7 @@
 <link rel="import" href="pathact-drug-item.html">
 <link rel="import" href="pathact-action-option.html">
 <dom-module id="pathact-viewer">
+    <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning"></style>
     <style>
         :host {
             display: block;
@@ -46,7 +52,7 @@
             height: 100%;
         }
 
-        #left > .jso-btn {
+        #left > .stv-btn {
             margin: 4px 0;
         }
 
@@ -56,7 +62,7 @@
             margin: 0 10px;
         }
 
-        jso-network-viewer {
+        network-viewer {
             border: 1px solid var(--divider-color);
         }
 
@@ -226,13 +232,13 @@
         <form id="form" class="horizontal layout">
             <div id="left" class="vertical layout">
                 <div class="horizontal layout">
-                    <div id="backButton" class="jso-btn jso-btn-shdw button" on-click="handleBackButton">
+                    <div id="backButton" class="stv-btn stv-btn-shdw button" on-click="handleBackButton">
                         <i class="fa fa-plus"></i>&nbsp; New &nbsp;
                     </div>
-                    <div id="updateGenesButton" class="flex jso-btn jso-btn-shdw button" on-click="handleUpdateButton">
+                    <div id="updateGenesButton" class="flex stv-btn stv-btn-shdw button" on-click="handleUpdateButton">
                         <i class="fa fa-refresh"></i>&nbsp; Update
                     </div>
-                    <div id="clearButton" class="jso-btn jso-btn-shdw button" on-click="handleClearButton">
+                    <div id="clearButton" class="stv-btn stv-btn-shdw button" on-click="handleClearButton">
                         <i class="fa fa-times"></i>&nbsp; Clear &nbsp;
                     </div>
                 </div>
@@ -243,22 +249,22 @@
             <div id="center" class="flex">
                 <div class="horizontal layout center" style="height:25px;">
                     <div style="margin-left:10px;">
-                        <label class="jso">Name:
-                        </label>{{jobItem.name}} - {{computeInputFileName(jobItem)}}
+                        <label class="stv">Name:
+                        </label>{{jobItem.name}}
                     </div>
                     <!-- <span>{{signalingPathwaysGeneNum}}</span> -->
                     <!-- <span style="margin-left:20px;">{{missingGeneNum}}</span>,
                     <span style="margin-left:10px;">{{translatedGeneNum}}</span>,
                     <span style="margin-left:10px;">{{untranslatedGeneNum}}</span> -->
                     <div class="flex"></div>
-                    <div id="reportButton" on-click="handleReportButton" class="jso-btn jso-btn-shdw" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show report</div>
+                    <div id="reportButton" on-click="handleReportButton" class="stv-btn stv-btn-shdw" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show report</div>
 
                 </div>
-                <jso-network-viewer id="networkViewer" style="height:calc(100% - 27px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar disable-context-menu on-leftclickvertex="handleNetworkViewerVertexClick"></jso-network-viewer>
+                <network-viewer id="networkViewer" style="height:calc(100% - 27px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar disable-context-menu on-leftclickvertex="handleNetworkViewerVertexClick"></network-viewer>
             </div>
             <div id="right">
                 <div class="horizontal layout">
-                    <label class="jso">Pathway list:</label>
+                    <label class="stv">Pathway list:</label>
                     <div class="flex"></div>
                     <span style="color:#000">{{pwChangedCount}}</span>
                     <span style="color:#666">&nbsp;altered</span>
@@ -273,7 +279,7 @@
                     </template>
                 </div>
                 <div class="horizontal layout" style="margin-top:5px;">
-                    <label class="jso">Circuit list:</label>
+                    <label class="stv">Circuit list:</label>
                     <div class="flex"></div>
                     <span style="color:#000">{{circuitChangedCount}}</span>
                     <span style="color:#666">&nbsp;altered</span>
@@ -288,7 +294,7 @@
                     </template>
                 </div>
                 <!-- <div hidden> -->
-                <label class="jso" style="margin-top:5px;">Last update gene list:</label>
+                <label class="stv" style="margin-top:5px;">Last update gene list:</label>
                 <div id="inputGeneList" style="height:calc(20% - 27px);">
                     <template is="dom-repeat" items="{{_inputGeneList}}">
                         <div>
@@ -302,25 +308,25 @@
             </div>
 
             <div id="koControl">
-                <!-- <label class="jso" style="margin-bottom:10px;">Genes activity value:</label>
+                <!-- <label class="stv" style="margin-bottom:10px;">Genes activity value:</label>
                 <template is="dom-repeat" items="{{koInputValues}}">
                     <div class="horizontal layout" style="margin-bottom:2px;">
-                        <div class="jso-txt" style="width:70px;text-align:right;">{{item.id}}:</div>
-                        <input class="jso flex" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{item.value::input}}" />
+                        <div class="stv-txt" style="width:70px;text-align:right;">{{item.id}}:</div>
+                        <input class="stv flex" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{item.value::input}}" />
                     </div>
                 </template> -->
 
-                <label class="jso">Activity value:</label>
-                <input class="jso" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
+                <label class="stv">Activity value:</label>
+                <input class="stv" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
             </div>
 
         </form>
-        <div id="loading" hidden$="{{!loading}}" class="horizontal layout center-justified jso-unselectable">
+        <div id="loading" hidden$="{{!loading}}" class="horizontal layout center-justified stv-unselectable">
             <div class="self-center">
                 <i class="fa fa-circle-o-notch fa-spin"></i> Loading...
             </div>
         </div>
-        <jso-panel hidden closable fixed modal id="reportPanel">
+        <stv-panel hidden closable fixed modal id="reportPanel">
             <div class="header">
                 Report
             </div>
@@ -328,15 +334,14 @@
 
             </div>
             <div class="footer flex horizontal layout center-justified">
-                <div class="jso-btn jso-btn-shdw" style="width:250px;" on-click="handleCloseReport">Close</div>
+                <div class="stv-btn stv-btn-shdw" style="width:250px;" on-click="handleCloseReport">Close</div>
             </div>
-        </jso-panel>
+        </stv-panel>
     </template>
 
     <script>
         Polymer({
             is: 'pathact-viewer',
-            behaviors: [JsoOpencgaManagerBehavior],
             properties: {
                 jobItem: {
                     type: Object,
@@ -465,12 +470,6 @@
             handleCloseReport: function() {
                 this.$.reportPanel.hide();
             },
-            computeInputFileName: function(jobItem) {
-                if (jobItem && jobItem.params && jobItem.params.exp_file) {
-                    return jobItem.params.exp_file.split('/').pop();
-                }
-                return '';
-            },
             isPathwaySelected: function(pw, selectedPathway) {
                 return selectedPathway != null && pw.id === selectedPathway.id;
             },
@@ -518,7 +517,7 @@
             },
             _init: function() {
                 var me = this;
-                this._openRemoteFileArrayBuffer('./drugmap.json.gz', function(content) {
+                this._openRemoteFileArrayBuffer('./conf/drugmap.json.gz', function(content) {
                     var map = JSON.parse(pako.ungzip(content, {
                         to: 'string'
                     }));
@@ -529,13 +528,13 @@
                     }
                     me.set('_validDrugList', drugList);
                 });
-                this._openRemoteFileArrayBuffer('./genemap.json.gz', function(content) {
+                this._openRemoteFileArrayBuffer('./conf/genemap.json.gz', function(content) {
                     var map = JSON.parse(pako.ungzip(content, {
                         to: 'string'
                     }));
                     me.set('_geneToDrugMap', map);
                 });
-                this._openRemoteFile('./valid_hgnc_signaling_genes.txt', function(content) {
+                this._openRemoteFile('./conf/valid_hgnc_signaling_genes.txt', function(content) {
                     var lines = content.split('\n');
                     var genes = [];
                     var genesMap = {};
@@ -569,44 +568,40 @@
                     var me = this;
                     me.clean();
                     var job = neo;
-                    var fileIds = job.input.concat(job.output);
                     this.loading = true;
-                    me._getFileBean(job.outDirId, function(jobOutDir) {
-                        me.set('jobFolder', jobOutDir);
-
-                        me._getFilesBeans(fileIds, function(files) {
-                            me._resultFileNameMap = {};
-                            me._resultFileInitNameMap = {};
-                            for (var i = 0; i < files.length; i++) {
-                                var f = files[i];
-                                /*Nya careful!!!*/
-                                if (f.path.indexOf('sifs4CellMaps_init') == -1) {
-                                    me._resultFileNameMap[f.name] = f;
-                                }
-                                if (f.path.indexOf('sifs4CellMaps_init') != -1) {
-                                    me._resultFileInitNameMap[f.name] = f;
-                                }
+                    this.set('jobFolder', job.folder);
+                    SteviaManager.getPlainFolderFiles(job.folder._id, function(folderFiles) {
+                        me._resultFileNameMap = {};
+                        me._resultFileInitNameMap = {};
+                        for (var i = 0; i < folderFiles.length; i++) {
+                            var f = folderFiles[i];
+                            /*Nya careful!!!*/
+                            if (f.path.indexOf('sifs4CellMaps_init') == -1) {
+                                me._resultFileNameMap[f.name] = f;
                             }
-                            me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
-                                me._loadPathwayList(JSON.parse(content));
-                                me.loading = false;
-                            });
-                            me.set('reportFile', me._resultFileNameMap['report.xml']);
-                            var attr = me.reportFile.attributes;
-                            if (attr.pathact != null && attr.pathact.geneList != null) {
-                                var geneList = attr.pathact.geneList;
-                                var drugList = attr.pathact.drugList;
-                                var relatedDrugList = attr.pathact.relatedDrugList;
-
-                                me._loadGeneSearchList(geneList);
-                                me._loadGeneSearchDrugList(drugList);
-                                me._loadGeneSearchRelatedDrugList(relatedDrugList);
-
+                            if (f.path.indexOf('sifs4CellMaps_init') != -1) {
+                                me._resultFileInitNameMap[f.name] = f;
                             }
-
-                            me._loadReport();
-                            me._loadInputGenes();
+                        }
+                        SteviaManager.getFileContent(me._resultFileNameMap['path_info.json']._id, function(content) {
+                            me._loadPathwayList(JSON.parse(content));
+                            me.loading = false;
                         });
+                        me.set('reportFile', me._resultFileNameMap['report.xml']);
+                        var attr = me.reportFile.attributes;
+                        if (attr && attr.pathact != null && attr.pathact.geneList != null) {
+                            var geneList = attr.pathact.geneList;
+                            var drugList = attr.pathact.drugList;
+                            var relatedDrugList = attr.pathact.relatedDrugList;
+
+                            me._loadGeneSearchList(geneList);
+                            me._loadGeneSearchDrugList(drugList);
+                            me._loadGeneSearchRelatedDrugList(relatedDrugList);
+
+                        }
+
+                        me._loadReport();
+                        me._loadInputGenes();
 
                     });
 
@@ -641,9 +636,11 @@
             },
             handlePathwayClick: function(e) {
                 console.log(e.model.item);
+                this._hideKoControl();
                 this._selectPathway(e.model.item);
             },
             handlePathClick: function(e) {
+                this._hideKoControl();
                 var path = e.model.item;
                 console.log(path);
                 if (this.selectedPath != null && path.id === this.selectedPath.id) {
@@ -697,11 +694,11 @@
 
                 console.log(pwid);
                 this.loading = true;
-                this.reportFile.attributes.pathact
-                this._getFileContent(this._resultFileNameMap[pwid + '.sif'].id, function(sifContent) {
-                    me._getFileContent(me._resultFileNameMap[pwid + '.natt'].id, function(nattContent) {
-                        me._getFileContent(me._resultFileInitNameMap[pwid + '.natt'].id, function(nattInitContent) {
-                            me._getFileContent(me._resultFileNameMap[pwid + '.eatt'].id, function(eattContent) {
+                // this.reportFile.attributes.pathact
+                SteviaManager.getFileContent(this._resultFileNameMap[pwid + '.sif']._id, function(sifContent) {
+                    SteviaManager.getFileContent(me._resultFileNameMap[pwid + '.natt']._id, function(nattContent) {
+                        SteviaManager.getFileContent(me._resultFileInitNameMap[pwid + '.natt']._id, function(nattInitContent) {
+                            SteviaManager.getFileContent(me._resultFileNameMap[pwid + '.eatt']._id, function(eattContent) {
 
                                 //init expression attributes
                                 new AttributeNetworkDataAdapter({
@@ -810,8 +807,8 @@
                 if (this.loading == false) {
                     this.loading = true;
 
-                    this.reportFile.attributes.pathact = {};
-                    this._updateFileAttributes(this.reportFile.id, {
+                    // this.reportFile.attributes.pathact = {};
+                    SteviaManager.updateFileAttributes(this.reportFile._id, {
                         pathact: {}
                     }, function() {});
 
@@ -820,27 +817,44 @@
                     this.$.geneSearch.clean();
                     this.$.networkViewer.startOver();
 
-                    /**/
-                    var split2 = this.jobItem.params.exp_file.split('/');
-                    split2.pop();
-                    var workingFolderPath = split2.join('/') + '/' + this.jobFolder.path;
-                    // console.log(workingFolderPath);
-
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('GET', PATHACT_HOST + '/clear?working_folder=' + workingFolderPath, true);
-                    xhr.onload = function(e) {
-                        var response = this.responseText;
-                        console.log(response);
-                        me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
-                            me._loadPathwayList(JSON.parse(content));
-                            me.loading = false;
-                            me._loadReport();
-                            me._loadInputGenes();
-                        });
+                    var query = {
+                        workingdirId: this.jobFolder._id
                     };
-                    // this.loading = true;
-                    xhr.send();
-                    /**/
+                    var args = {
+                        tool: 'pathways',
+                        execution: 'pathact-clear',
+                        executable: 'pathact-clear.sh',
+                        options: {
+                            "working_folder": {
+                                out: true,
+                            }
+                        }
+                    };
+
+                    this.loading = true;
+                    SteviaManager.jobs.run({
+                        query: query,
+                        request: {
+                            method: 'POST',
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(args),
+                            success: function(response) {
+                                // var response = JSON.parse(this.responseText);
+                                SteviaManager.getFileContent(me._resultFileNameMap['path_info.json']._id, function(content) {
+                                    me.loading = false;
+                                    me._loadPathwayList(JSON.parse(content));
+                                    me._loadReport();
+                                    me._loadInputGenes();
+                                });
+                            },
+                            error: function() {
+                                me.loading = false;
+                                console.log('PathAct viewer clear: Server error, try again later.');
+                            }
+                        }
+                    });
 
                 }
             },
@@ -908,43 +922,66 @@
                 if (this.loading == false) {
                     console.log(ko_file_content);
                     this._saveAttributesToFile();
-                    var ko_file = new Blob([ko_file_content], {
-                        type: 'text/plain'
-                    });
 
-                    var formData = new FormData();
-
-                    var split2 = this.jobItem.params.exp_file.split('/');
-                    var filename = split2.pop();
-                    var workingFolderPath = split2.join('/') + '/' + '.pathact-init-' + this.jobItem.name + '-' + filename + '/' + this.jobFolder.name;
-                    // console.log(workingFolderPath);
-
-                    formData.append('working_folder', workingFolderPath);
-                    formData.append('fold_change', this.foldChange);
-                    formData.append('ko_file', ko_file, 'ko_file.txt');
-
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('POST', PATHACT_HOST + '/update', true);
-                    xhr.onload = function(e) {
-                        var response = JSON.parse(this.responseText);
-                        me.loading = false;
-                        me._getFileContent(me._resultFileNameMap['path_info.json'].id, function(content) {
-                            me._loadPathwayList(JSON.parse(content));
-                            me.loading = false;
-                        });
-                        me._loadReport();
-                        me._loadInputGenes();
+                    var query = {
+                        workingdirId: this.jobFolder._id
                     };
+                    var args = {
+                        tool: 'pathways',
+                        execution: 'pathact-update',
+                        executable: 'pathact-update.sh',
+                        options: {
+                            "working_folder": {
+                                out: true,
+                            },
+                            "verbose": {
+                                type: 'flag'
+                            },
+                            "fold_change": {
+                                "type": "text",
+                                "value": this.foldChange.toString()
+                            },
+                            "ko_file": {
+                                "type": "file",
+                                "mode": "text",
+                                "value": ko_file_content
+                            }
+                        }
+                    };
+
                     this.loading = true;
-                    xhr.send(formData);
+                    SteviaManager.jobs.run({
+                        query: query,
+                        request: {
+                            method: 'POST',
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(args),
+                            success: function(response) {
+                                // var response = JSON.parse(this.responseText);
+                                me.loading = false;
+                                SteviaManager.getFileContent(me._resultFileNameMap['path_info.json']._id, function(content) {
+                                    me._loadPathwayList(JSON.parse(content));
+                                    me.loading = false;
+                                });
+                                me._loadReport();
+                                me._loadInputGenes();
+                            },
+                            error: function() {
+                                me.loading = false;
+                                console.log('PathAct viewer update: Server error, try again later.');
+                            }
+                        }
+                    });
                 }
             },
             _saveAttributesToFile: function() {
                 var me = this;
                 if (this.reportFile != null) {
-                    var attr = this.reportFile.attributes.pathact;
-                    if (attr == null) {
-                        attr = {};
+                    var attr = {};
+                    if (this.reportFile.attributes != null && this.reportFile.attributes.pathact != null) {
+                        attr = this.reportFile.attributes.pathact;
                     }
                     var geneList, relatedDrugList, drugList;
                     geneList = this.$.geneSearch.selectedGeneList;
@@ -975,7 +1012,7 @@
                     }
                     attr.relatedDrugList = relatedDrugListToSave;
 
-                    this._updateFileAttributes(this.reportFile.id, {
+                    SteviaManager.updateFileAttributes(this.reportFile._id, {
                         pathact: attr
                     }, function() {});
                 }
@@ -1096,22 +1133,22 @@
             },
             _loadInputGenes: function() {
                 var me = this;
-                this._getFileContent(this._resultFileNameMap['ko.txt'].id, function(content) {
+                SteviaManager.getFileContent(this._resultFileNameMap['ko.txt']._id, function(content) {
                     var parsedContent = me._parseTabularFile(content);
                     me.set('_inputGeneList', parsedContent);
                 });
             },
             _loadReport: function() {
                 var me = this;
-                var result = document.createElement('jso-' + 'pathways' + '-result');
-                var el = me.$.reportPanelContainer.querySelector('jso-pathways-result');
+                var result = document.createElement('hipathia' + '-result');
+                var el = me.$.reportPanelContainer.querySelector('hipathia-result');
                 if (el != null) {
                     Polymer.dom(me.$.reportPanelContainer).removeChild(el);
                 }
                 result.set('job', me.jobItem);
                 Polymer.dom(me.$.reportPanelContainer).appendChild(result);
 
-                // this._getFileContent(me._resultFileNameMap['report.xml'].id, function(content) {
+                // SteviaManager.getFileContent(me._resultFileNameMap['report.xml']._id, function(content) {
                 //     var parser = new DOMParser();
                 //     var reportXML = parser.parseFromString(content, "text/xml");
                 //     var outputParamsEl = reportXML.querySelector('output-params');

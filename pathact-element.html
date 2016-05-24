@@ -1,30 +1,32 @@
-<script src="../bower_components/file-saver.js/FileSaver.js"></script>
+<script src="bower_components/stevia-elements/src/manager/stevia-manager.js"></script>
 
-<link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/iron-flex-layout/classes/iron-flex-layout.html">
-<link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
-<link rel="import" href="../lib/jsorolla/src/lib/components/jso-application-behavior.html">
-<link rel="import" href="../lib/jsorolla/src/lib/components/opencga/jso-opencga-manager-behavior.html">
-<link rel="import" href="../lib/jsorolla/src/network-viewer/jso-network-viewer.html">
+<script src="bower_components/cookies-js/dist/cookies.min.js"></script>
+<script src="bower_components/crypto-js/core.js"></script>
+<script src="bower_components/crypto-js/sha1.js"></script>
 
-<link rel="import" href="../lib/jsorolla/src/lib/components/jso-help-menu.html">
-<link rel="import" href="../lib/jsorolla/src/lib/components/jso-opencga-input-text.html">
-<link rel="import" href="../lib/jsorolla/src/lib/components/opencga/jso-opencga-footer.html">
-<link rel="import" href="../lib/jsorolla/src/lib/components/opencga/jso-opencga-header.html">
-<link rel="import" href="../lib/jsorolla/src/lib/components/jso-search.html">
-<link rel="import" href="../lib/jsorolla/src/lib/components/jso-tooltip.html">
-<link rel="import" href="../lib/jsorolla/src/lib/components/opencga/files/jso-opencga-browser.html">
-<link rel="import" href="../lib/jsorolla/src/lib/components/opencga/files/jso-opencga-job-browser.html">
+<link rel="import" href="bower_components/stevia-elements/src/stv-header.html">
+<link rel="import" href="bower_components/stevia-elements/src/stv-application-behavior.html">
+<link rel="import" href="bower_components/stevia-elements/src/stv-footer.html">
+<link rel="import" href="bower_components/stevia-elements/src/stv-select.html">
+<link rel="import" href="bower_components/stevia-elements/src/stv-select-box.html">
+<link rel="import" href="bower_components/stevia-elements/src/stv-panel.html">
+<link rel="import" href="bower_components/stevia-elements/src/stv-search.html">
+<link rel="import" href="bower_components/stevia-elements/src/stv-tooltip.html">
+<link rel="import" href="bower_components/stevia-elements/src/dropdown/stv-dropdown.html">
 
-<script src="expression-validator.js"></script>
-<link rel="import" href="viewer/pathact-viewer.html">
-<link rel="import" href="pathact-form.html">
-<link rel="import" href="jso-pathways-result.html">
+<link rel="import" href="bower_components/stevia-elements/src/file/stv-file-browser.html">
+<link rel="import" href="bower_components/stevia-elements/src/job/stv-job-browser.html">
 
-<link rel="import" href="pathact-home.html">
+<link rel="import" href="src/pathact-home.html">
+<link rel="import" href="src/viewer/pathact-viewer.html">
+<link rel="import" href="src/pathact-form.html">
+<link rel="import" href="src/hipathia-result.html">
 
 <dom-module id="pathact-element">
+    <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning"></style>
     <style>
         :host {
             display: block;
@@ -36,12 +38,12 @@
             width: 100%;
         }
 
-        jso-opencga-header {
+        stv-header {
             position: absolute;
             top: 0;
         }
 
-        jso-opencga-footer {
+        stv-footer {
             position: absolute;
             bottom: 0;
         }
@@ -54,28 +56,9 @@
             /*background-color: transparent;*/
         }
 
-        jso-job-result {
-            min-height: 100%;
-        }
+        #fileBrowser {}
 
-        #browserPanel {
-            position: absolute;
-            top: 0px;
-            left: 0;
-            width: 600px;
-        }
-
-        #jobsPanel {
-            position: absolute;
-            top: 0px;
-            right: 0;
-            width: 600px;
-        }
-
-        #browser {
-            /*width: 600px;*/
-            height: 400px;
-        }
+        #jobBrowser {}
 
         @media (max-width: 1100px) {
             .option-text {
@@ -109,25 +92,25 @@
         }
     </style>
     <template>
-        <div class="content" menu-option="home,start,pathact">
-            <jso-panel hidden fixed modal closable id="configureDrugActionsPanel" on-hidden="handlePanelHidden">
+        <div class="content" menu-option="home,form,viewer">
+            <stv-panel hidden fixed modal closable id="configureDrugActionsPanel" on-hidden="handlePanelHidden">
                 <div class="header">
                     <i class="fa fa-sliders"></i> Settings
                 </div>
                 <div id="drugActionList" class="container flex" style="width:650px; padding:7px;">
                     <div class="horizontal layout">
                         <div>
-                            <label class="jso">Configure fold change:</label>
+                            <label class="stv">Configure fold change:</label>
                             <br>
                             <div style="width:200px">
-                                <input id="foldChangeInput" class="jso" type="number" step="0.1" min="0" value="{{foldChange::input}}" on-change="handleFoldChange">
+                                <input id="foldChangeInput" class="stv" type="number" step="0.1" min="0" value="{{foldChange::input}}" on-change="handleFoldChange">
                             </div>
                         </div>
                         <div class="flex"></div>
-                        <div class="jso-btn jso-btn-shdw" on-click="handleResetDefaults">Reset defaults</div>
+                        <div class="stv-btn stv-btn-shdw" on-click="handleResetDefaults">Reset defaults</div>
                     </div>
                     <br>
-                    <label class="jso">Configure drug action weight:</label>
+                    <label class="stv">Configure drug action weight:</label>
                     <br>
                     <div class="list horizontal layout wrap">
                         <template is="dom-repeat" items="{{drugActionList}}">
@@ -135,101 +118,83 @@
                         </template>
                     </div>
                 </div>
-            </jso-panel>
+            </stv-panel>
         </div>
 
-        <div class="content" menu-option="pathact">
+        <div class="content" menu-option="viewer">
             <pathact-viewer id="pathactViewer" drug-action-list="{{drugActionList}}" drug-action-map="{{drugActionMap}}" fold-change="{{foldChange}}" on-goback="handleViewerGoBack"></pathact-viewer>
         </div>
-        <div class="content" menu-option="start">
-            <pathact-form id="pathactForm" selectedOption="{{selectedOption}}" bioformats="{{bioformats}}" projects="{{projects}}" allowed-tools="{{allowedTools}}" on-jobselect="handleJobSelect"></pathact-form>
+        <div class="content" menu-option="form">
+            <pathact-form id="pathactForm" selectedOption="{{selectedOption}}" bioformats="{{bioformats}}" user-data="{{userData}}" allowed-tools="{{allowedTools}}" on-jobselect="handleJobSelect" on-need-refresh="handleUserNeedRefresh"></pathact-form>
         </div>
 
         <div class="content" menu-option="home">
             <pathact-home id="home" on-start="handleHomeStart" isLogged="{{isLogged}}"></pathact-home>
         </div>
 
-        <jso-opencga-header id="jsoHeader" hide-jobs hide-browse selected-option="{{selectedOption}}" user-data="{{userData}}" on-login="handleLogin" on-logout="handleLogout">
-            <!--<div hidden class="icon">-->
-            <!--<img src="" style="height: 0px;margin: 5px 0px 0 0;">-->
-            <!--</div>-->
+        <stv-header id="stvHeader" hide-jobs hide-browse selected-option="{{selectedOption}}" user-data="{{userData}}" on-login="handleLogin" on-logout="handleLogout">
             <!-- <div class="icon">
-                <img src="./images/pathiways-logo.svg" style="height: 54px;margin: 3px 5px 0 0;">
+                <img src="images/icon.svg" style="height: 54px;margin: 8px 3px 0 0;">
             </div> -->
-            <div class="title horizontal layout center" style="margin-left:15px;">
-                Path
-                <span style="font-weight:normal;">Act</span>
+            <div class="title" style="margin-left:15px;">
+                <span>Path<span style="font-weight:normal;">Act</span></span>
             </div>
             <span id="description" class="description">
                 Actionable pathway workshop
             </span>
 
-            <div id="menu" class="menu horizontal layout flex">
+            <div id="menu" class="menu horizontal layout center flex">
                 <div class="flex"></div>
-                <div show-on-login title="Settings" class="option" on-click="handleLoggedOnlyMenuOption" data-option="start" show-on-login>
+                <div title="Jobs" class="option" on-click="handleLoggedOnlyMenuOption" data-option="form" show-on-login>
                     <i class="fa fa-rocket"></i>
                     <span class="option-text">Jobs</span>
                 </div>
                 <div style="margin-left:3vw;"></div>
-                <div show-on-login title="Settings" class="option" on-click="handleLoggedOnlyMenuPanel" data-panel="configureDrugActionsPanel">
+                <div title="Settings" class="option" on-click="handleLoggedOnlyMenuPanel" data-panel="configureDrugActionsPanel" show-on-login>
                     <i class="fa fa-sliders"></i>
                     <span class="option-text">Settings</span>
                 </div>
             </div>
 
-            <jso-help-menu class="helpmenu" selectedOption="{{selectedOption}}">
-                <a href="http://pathact.babelomics.org/doc" target="_blank">
-                    <i class="fa fa-book"></i> &nbsp; Documentation
-                </a>
-                <div on-mousedown="handleExample">
-                    <i class="fa fa-lightbulb-o"></i> &nbsp; Run example
-                </div>
-            </jso-help-menu>
-        </jso-opencga-header>
 
-        <jso-opencga-footer menu-option="home,login,signup,profile,remember">
+            <stv-dropdown dark class="helpmenu">
+                <div data-button><i class="fa fa-question-circle"></i></div>
+                <ul data-menu>
+                    <a href="http://pathact.babelomics.org/doc" target="_blank">
+                        <li>
+                            <i class="fa fa-book"></i> &nbsp; Documentation
+                        </li>
+                    </a>
+                    <li>
+                        <div on-mousedown="handleExample">
+                            <i class="fa fa-lightbulb-o"></i> &nbsp; Run example
+                        </div>
+                    </li>
+                </ul>
+            </stv-dropdown>
+        </stv-header>
+
+        <stv-footer menu-option="home,login,signup,profile,remember">
             PathAct {{version}}
             <br> Created by
             <span style="font-weight:bold;">Computational Genomics Department</span>
             <br> Principe Felipe Research Center, Valencia, Spain
-            <br> 2015
-        </jso-opencga-footer>
+            <br> 2016
+        </stv-footer>
     </template>
 
     <script>
         Polymer({
             is: "pathact-element",
-            behaviors: [JsoApplicationBehavior],
+            behaviors: [StvApplicationBehavior],
             properties: {
                 bioformats: {
                     type: Array,
-                    value: [{
-                        value: 'DATAMATRIX_EXPRESSION',
-                        text: 'Data matrix expression',
-                        validator: ExpressionValidator,
-                        hint: 'Data matrix expression is a Tab-separated values file. This file has two columns if there is only one sample, and more than two columns if there are many samples. First line is a header and must contain the names of the samples. The first column correspond to gene/probe/protein Ids from (Ensembl gene, HGNC symbol, Entrez id, Affy HG U133A probeset, Affy HG U133B probeset, Affy HG U133-PLUS-2 probeset and Affy HTA 2.0), the next columns correspond to gene expression values in numeric format from each sample.',
-                        url: 'http://pathact.babelomics.org/doc/doku.php?id=data_matrix_expression_file'
-                    }]
+                    value: [BIOFORMATS["DATAMATRIX_EXPRESSION"]]
                 },
                 allowedTools: {
                     type: Array,
                     value: ['pathways.pathact-init']
-                },
-                cellBaseHost: {
-                    type: String,
-                    value: CellBaseManager.host
-                },
-                opencgaHost: {
-                    type: String,
-                    value: OpencgaManager.host
-                },
-                networkViewer: {
-                    type: Object
-                },
-                projects: {
-                    type: Array,
-                    notify: true,
-                    observer: 'projectsChanged'
                 },
                 drugActionList: {
                     type: Array,
@@ -243,8 +208,12 @@
                     type: Number
                 }
             },
+            selectedOptionChanged: function(neo, old) {
+                this.$.pathactForm.clean();
+            },
             ready: function() {
                 var me = this;
+                this.selectedOption = "home";
                 this.checkShowMenuOnLogin();
 
                 var fc = localStorage.getItem("pathact_foldchange");
@@ -267,10 +236,12 @@
             },
             handleResetDefaults: function(e) {
                 this.loadDrugActions();
+                this.set('foldChange', 2);
+                localStorage.setItem("pathact_foldchange", this.foldChange);
             },
             loadDrugActions: function() {
                 var me = this;
-                this._openRemoteFile('./drug-actions.json', function(content) {
+                this._openRemoteFile('./conf/drug-actions.json', function(content) {
                     var allActions = JSON.parse(content);
                     var nameMap = {};
                     var actions = [];
@@ -310,22 +281,20 @@
                 this.set('foldChange', this.$.foldChangeInput.value);
             },
             handleFileSelect: function(e) {
-                console.log("file");
-                console.log(e.detail);
-                var file = e.detail;
-                if (file.index && file.index.status == 'READY') {}
+                // console.log("file");
+                // console.log(e.detail);
             },
             handleJobSelect: function(e) {
                 var job = e.detail;
-                if (job && job.status === 'READY') {
+                if (job && job.status === 'DONE') {
                     if (this.$.pathactViewer.jobItem != null) {
                         if (this.$.pathactViewer.jobItem.id !== job.id) {
                             this.$.pathactViewer.set('jobItem', job);
                         }
-                        this.set('selectedOption', 'pathact');
+                        this.set('selectedOption', 'viewer');
                     } else {
                         this.$.pathactViewer.set('jobItem', job);
-                        this.set('selectedOption', 'pathact');
+                        this.set('selectedOption', 'viewer');
                     }
                 }
             },
@@ -333,41 +302,40 @@
                 this.set('selectedOption', 'home');
             },
             handleLogin: function() {
-                this.selectedOption = "home";
+                // this.selectedOption = "home";
                 if (this._lastLogedRequest) {
-                    this._lastLogedRequest.hidden = false;
                     this._lastLogedRequest = null;
                 }
-
+                if (this._lastExampleRequest) {
+                    this.runExample(this._lastExampleRequest);
+                    this._lastExampleRequest = null;
+                }
                 this.$.home.isLogged = true;
-                this.setMenu('start');
                 this.checkShowMenuOnLogin();
+                this.setMenu('form');
             },
             handleLogout: function() {
-                // this.$.pathactViewer.clean();
                 this.$.home.isLogged = false;
                 this.setMenu('home');
                 this.checkShowMenuOnLogin();
             },
             handleUserNeedRefresh: function() {
-                this.$.jsoHeader.getUserInfo(true);
+                this.$.stvHeader.getUserInfo(true);
             },
             handleHomeStart: function() {
-                if (this.$.jsoHeader.isLogged == true) {
-                    this.setMenu('start');
-                } else {
-                    this.$.jsoHeader.anonymousSign();
+                if (this.$.stvHeader.isLogged != true) {
+                    this.$.stvHeader.anonymousSign();
                 }
             },
             handleViewerGoBack: function() {
-                this.handleHomeStart();
+                this.setMenu('form');
             },
 
             /**/
             handleExample: function(e) {
-                if (this.$.jsoHeader.isLogged != true) {
+                if (this.$.stvHeader.isLogged != true) {
                     this._lastExampleRequest = true;
-                    this.$.jsoHeader.anonymousSign();
+                    this.$.stvHeader.anonymousSign();
                 } else {
                     this.runExample();
                 }
@@ -376,16 +344,6 @@
                 this.async(function() {
                     this.$.pathactForm.handleLoadExample();
                 }, 100);
-            },
-            projectsChanged: function(neo, old) {
-                if (this.$.jsoHeader.isLogged == true) {
-                    if (neo.length > 0) {
-                        if (this._lastExampleRequest != null) {
-                            this.runExample();
-                            this._lastExampleRequest = null;
-                        }
-                    }
-                }
             },
             _openRemoteFile: function(filepath, cb) {
                 var me = this;
@@ -398,11 +356,7 @@
                 };
                 request.open("GET", filepath);
                 request.send();
-            },
-            selectedOptionChanged:function(){
-                this.$.pathactForm.clean();
             }
-
         });
     </script>
 </dom-module>

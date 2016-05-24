@@ -7,9 +7,7 @@ PathAct is a web tool that enables the study of the consequences that Knockouts(
 ```bash
 git clone https://github.com/babelomics/pathact.git
 cd pathact/
-git submodule update --init
 ```
-
 
 ## Compiling CSS and JavaScript
 
@@ -18,7 +16,7 @@ cd pathact/
 ```
 
 ### Install Node
-To install node click [here.](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)
+To install node click [here.](https://nodejs.org/en/download/package-manager/)
 
 **What is `npm`?** npm stands for [node packaged modules](http://npmjs.org/) is the node dependency manager.
 
@@ -28,8 +26,6 @@ To install node click [here.](https://github.com/joyent/node/wiki/Installing-Nod
 
 sudo npm install -g bower
 npm install
-bower install
-cd lib/jsorolla
 bower install
 
 ### Run builder
