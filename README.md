@@ -23,12 +23,13 @@ To install node click [here.](https://nodejs.org/en/download/package-manager/)
 ### Install bower components and npm modules
 
 ```bash
-
 sudo npm install -g bower
 npm install
 bower install
+```
 
 ### Run builder
+```bash
 npm run build
 ```
 Minimized files will be located in the `/build` dir.
@@ -36,4 +37,4 @@ Minimized files will be located in the `/build` dir.
 
 ### Back-end Configuration
 PathAct uses [stevia-server](https://github.com/babelomics/stevia-server) as back-end for user, file and job management.
-To use you own stevia-server installation you must modify the **conf/config.js** file and change the STEVIA_SERVER_HOST to the new URL.
+To use your own stevia-server installation you must modify the **conf/config.js** file and change the STEVIA_SERVER_HOST to the new URL.
