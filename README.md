@@ -32,3 +32,8 @@ bower install
 npm run build
 ```
 Minimized files will be located in the `/build` dir.
+
+
+### Back-end Configuration
+PathAct uses [stevia-server](https://github.com/babelomics/stevia-server) as back-end for user, file and job management.
+To use you own stevia-server installation you must modify the **conf/config.js** file and change the STEVIA_SERVER_HOST to the new URL.
