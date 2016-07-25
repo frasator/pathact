@@ -1,7 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <script src="../../bower_components/network-viewer/conf/config.js"></script>
-<link rel="import" href="../../bower_components/network-viewer/network-viewer.html">
+<link rel="import" href="../../bower_components/pathway-viewer/pathway-viewer.html">
 
 <link rel="import" href="pathact-gene-search.html">
 
@@ -27,20 +27,6 @@
             width: 100%;
             box-sizing: border-box;
             padding: 8px 10px 10px 10px;
-            /*margin: 0px auto 0px auto;*/
-            /*max-width: 1000px;*/
-            /*border: 1px solid #c6d0da;*/
-            /*box-shadow: 2px 6px 15px 8px rgba(0, 0, 0, 0.30);*/
-        }
-
-        #right {
-            position: relative;
-            width: 15%;
-            max-width: 280px;
-            min-width: 150px;
-            box-sizing: border-box;
-            height: 100%;
-            padding-top: 4px;
         }
 
         #left {
@@ -52,18 +38,12 @@
             height: 100%;
         }
 
-        #left > .stv-btn {
+        #left> .stv-btn {
             margin: 4px 0;
         }
 
-        #center {
-            box-sizing: border-box;
-            height: 100%;
-            margin: 0 10px;
-        }
-
-        network-viewer {
-            border: 1px solid var(--divider-color);
+        pathway-viewer {
+            padding-left: 10px;
         }
 
         #koControl {
@@ -79,7 +59,6 @@
             padding: 5px 10px 10px 10px;
         }
 
-        .plist,
         #inputGeneList {
             position: relative;
             box-sizing: border-box;
@@ -88,54 +67,8 @@
             background-color: var(--light-primary-color);
         }
 
-        #inputGeneList > div {
+        #inputGeneList> div {
             padding: 1px 4px;
-        }
-
-        .plist > div {
-            cursor: pointer;
-            padding: 1px 4px;
-            border: 1px solid transparent;
-            color: #555;
-        }
-
-        .plist > div:hover {
-            background-color: var(--hover-color);
-            border-color: var(--accent-color);
-        }
-
-        .plist > div[data-checked] {
-            background-color: var(--accent-color);
-        }
-
-        .plist > div > span[data-haschanged] {
-            margin-right: 3px;
-            color: #000;
-            font-weight: bold;
-        }
-
-        .plist > div > span[data-down][data-haschanged]:before,
-        .plist > div > span[data-up][data-haschanged]:before {
-            margin-right: 3px;
-            color: #aaa;
-        }
-
-        .plist > div > span[data-up][data-haschanged]:before {
-            font-family: 'FontAwesome';
-            content: '\f176';
-        }
-
-        .plist > div > span[data-down][data-haschanged]:before {
-            font-family: 'FontAwesome';
-            content: '\f175';
-        }
-
-        .plist > div > span[data-upsig][data-haschanged]:before {
-            color: #cc0000;
-        }
-
-        .plist > div > span[data-downsig][data-haschanged]:before {
-            color: #005aa3;
         }
 
         #updateGenesButton.button {
@@ -191,17 +124,14 @@
             bottom: 0;
             left: 0;
             right: 0;
-            /*width: 100%;*/
-            /*height: 100%;*/
             background-color: rgba(0, 0, 0, 0.60);
             font-size: 18px;
         }
 
-        #loading > div {
+        #loading> div {
             box-shadow: 2px 2px 3px 0px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(0, 0, 0, 0.2);
-            background-color: #d75a00;
-            /*background-color: var(--accent-color);*/
+            background-color: var(--dark-button-color);
             color: #fff;
             padding: 10px 40px;
         }
@@ -246,56 +176,16 @@
                 <pathact-gene-search id="geneSearch" class="vertical layout" valid-gene-list="{{_validHgncSignalingGenesList}}" valid-gene-map="{{_validHgncSignalingGenesMap}}" valid-drug-list="{{_validDrugList}}" drug-action-map="{{drugActionMap}}" drug-to-gene-map="{{_drugToGeneMap}}" gene-to-drug-map="{{_geneToDrugMap}}" default-ko-value="{{defaultKoValue}}" on-drug-list-changed="handleGeneDrugListChanged"></pathact-gene-search>
 
             </div>
-            <div id="center" class="flex">
-                <div class="horizontal layout center" style="height:25px;">
-                    <div style="margin-left:10px;">
-                        <label class="stv">Name:
-                        </label>{{jobItem.name}}
-                    </div>
-                    <!-- <span>{{signalingPathwaysGeneNum}}</span> -->
-                    <!-- <span style="margin-left:20px;">{{missingGeneNum}}</span>,
-                    <span style="margin-left:10px;">{{translatedGeneNum}}</span>,
-                    <span style="margin-left:10px;">{{untranslatedGeneNum}}</span> -->
-                    <div class="flex"></div>
-                    <div id="reportButton" on-click="handleReportButton" class="stv-btn stv-btn-shdw" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show report</div>
 
+            <pathway-viewer id="pathwayViewer" path-type="session" left-title="{{jobItem.name}}" on-select-category="handleSelectCategory" on-select-circuit="handleSelectCircuit" background-color="#fcfcfc" on-leftclickvertex="handleNetworkViewerVertexClick">
+                <!-- <span>{{signalingPathwaysGeneNum}}</span> -->
+                <!-- <span style="margin-left:20px;">{{missingGeneNum}}</span>,
+                <span style="margin-left:10px;">{{translatedGeneNum}}</span>,
+                <span style="margin-left:10px;">{{untranslatedGeneNum}}</span> -->
+                <div class="right-label ">
+                    Last update gene list:
                 </div>
-                <network-viewer id="networkViewer" style="height:calc(100% - 27px);" hide-node-render hide-edge-render hide-bar hide-tool-bar hide-edition-bar hide-status-bar disable-context-menu on-leftclickvertex="handleNetworkViewerVertexClick"></network-viewer>
-            </div>
-            <div id="right">
-                <div class="horizontal layout">
-                    <label class="stv">Pathway list:</label>
-                    <div class="flex"></div>
-                    <span style="color:#000">{{pwChangedCount}}</span>
-                    <span style="color:#666">&nbsp;altered</span>
-                </div>
-                <div id="pathwayList" class="plist" style="height:calc(40% - 23px);">
-                    <template is="dom-repeat" items="{{pathwayList}}">
-                        <div on-click="handlePathwayClick" data-checked$="{{isPathwaySelected(item, selectedPathway)}}">
-                            <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}" data-haschanged$="{{item.haschanged}}"></span>
-                            <span data-down$="{{item.down}}" data-downsig$="{{item.downsig}}" data-haschanged$="{{item.haschanged}}"></span>
-                            <span data-haschanged$="{{item.haschanged}}">{{item.name}}</span>
-                        </div>
-                    </template>
-                </div>
-                <div class="horizontal layout" style="margin-top:5px;">
-                    <label class="stv">Circuit list:</label>
-                    <div class="flex"></div>
-                    <span style="color:#000">{{circuitChangedCount}}</span>
-                    <span style="color:#666">&nbsp;altered</span>
-                </div>
-                <div id="pathList" class="plist" style="height:calc(40% - 23px);">
-                    <template is="dom-repeat" items="{{pathList}}">
-                        <div on-click="handlePathClick" data-checked$="{{isPathSelected(item, selectedPath)}}">
-                            <span data-up$="{{item.up}}" data-upsig$="{{item.upsig}}" data-haschanged$="{{item.haschanged}}"></span>
-                            <span data-down$="{{item.down}}" data-downsig$="{{item.downsig}}" data-haschanged$="{{item.haschanged}}"></span>
-                            <span data-haschanged$="{{item.haschanged}}">{{item.shortname}}</span>
-                        </div>
-                    </template>
-                </div>
-                <!-- <div hidden> -->
-                <label class="stv" style="margin-top:5px;">Last update gene list:</label>
-                <div id="inputGeneList" style="height:calc(20% - 27px);">
+                <div id="inputGeneList" class="right-box" style="height:100px;">
                     <template is="dom-repeat" items="{{_inputGeneList}}">
                         <div>
                             <span>{{item.gene}}</span> -
@@ -304,8 +194,9 @@
                         </div>
                     </template>
                 </div>
-                <!-- </div> -->
-            </div>
+                <div id="reportButton" on-click="handleReportButton" class="left-label stv-btn stv-btn-shdw" style="margin:0 2px 2px 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show report</div>
+            </pathway-viewer>
+
 
             <div id="koControl">
                 <!-- <label class="stv" style="margin-bottom:10px;">Genes activity value:</label>
@@ -315,12 +206,11 @@
                         <input class="stv flex" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{item.value::input}}" />
                     </div>
                 </template> -->
-
                 <label class="stv">Activity value:</label>
                 <input class="stv" type="number" min="0" max="1" step="0.05" on-change="handlekoControlChange" value="{{koInputValue::input}}" />
             </div>
-
         </form>
+
         <div id="loading" hidden$="{{!loading}}" class="horizontal layout center-justified stv-unselectable">
             <div class="self-center">
                 <i class="fa fa-circle-o-notch fa-spin"></i> Loading...
@@ -442,13 +332,9 @@
                         return []
                     }
                 },
-                _resultFileNameMap: {
+                fileNameMap: {
                     type: Object
                 },
-                _resultFileInitNameMap: {
-                    type: Object
-                },
-
                 signalingPathwaysGeneNum: {
                     type: String
                 },
@@ -470,21 +356,6 @@
             handleCloseReport: function() {
                 this.$.reportPanel.hide();
             },
-            isPathwaySelected: function(pw, selectedPathway) {
-                return selectedPathway != null && pw.id === selectedPathway.id;
-            },
-            isPathSelected: function(p, selectedPath) {
-                return selectedPath != null && p.id === selectedPath.id;
-            },
-            _pwSortFn: function(a, b) {
-                if (a.haschanged && !b.haschanged) {
-                    return -1;
-                }
-                if (b.haschanged && !a.haschanged) {
-                    return 1;
-                }
-                return a.name.localeCompare(b.name)
-            },
             handleReportButton: function(e) {
                 var me = this;
                 this.$.reportPanel.show();
@@ -500,18 +371,18 @@
             ready: function() {
                 var me = this;
                 this._init();
-                // this.$.networkViewer.addEventListener('hoververtex', function(e) {
+                // this.$.pathwayViewer.$.networkViewer.addEventListener('hoververtex', function(e) {
                 // var x = e.detail.e.clientX;
                 // var y = e.detail.e.clientY;
                 // console.log(x + '-' + y);
                 // });
-                // this.$.networkViewer.addEventListener('hoverleave', function(e) {
+                // this.$.pathwayViewer.$.networkViewer.addEventListener('hoverleave', function(e) {
                 //     console.log(e)
                 // });
-                // this.$.networkViewer.addEventListener('leftclickvertex', function(e) {
+                // this.$.pathwayViewer.$.networkViewer.addEventListener('leftclickvertex', function(e) {
                 //     console.log(e);
                 // });
-                this.$.networkViewer.addEventListener('selectback', function(e) {
+                this.$.pathwayViewer.$.networkViewer.addEventListener('selectback', function(e) {
                     me._hideKoControl();
                 });
             },
@@ -552,13 +423,9 @@
                 // localStorage.removeItem("pathact_actions");
             },
             clean: function() {
-                this.set('pathList', null);
-                this.set('pathwayList', null);
                 this.set('_inputGeneList', []);
-                this.set('selectedPathway', null);
-                this.set('selectedPath', null);
                 this.set('reportFile', null);
-                this.$.networkViewer.startOver();
+                this.$.pathwayViewer.clean();
                 this.loading = false;
                 this.$.geneSearch.clean();
                 this._hideKoControl();
@@ -571,23 +438,11 @@
                     this.loading = true;
                     this.set('jobFolder', job.folder);
                     SteviaManager.getPlainFolderFiles(job.folder._id, function(folderFiles) {
-                        me._resultFileNameMap = {};
-                        me._resultFileInitNameMap = {};
-                        for (var i = 0; i < folderFiles.length; i++) {
-                            var f = folderFiles[i];
-                            /*Nya careful!!!*/
-                            if (f.path.indexOf('sifs4CellMaps_init') == -1) {
-                                me._resultFileNameMap[f.name] = f;
-                            }
-                            if (f.path.indexOf('sifs4CellMaps_init') != -1) {
-                                me._resultFileInitNameMap[f.name] = f;
-                            }
-                        }
-                        SteviaManager.getFileContent(me._resultFileNameMap['path_info.json']._id, function(content) {
-                            me._loadPathwayList(JSON.parse(content));
-                            me.loading = false;
-                        });
-                        me.set('reportFile', me._resultFileNameMap['report.xml']);
+                        me._createFilePathMap(folderFiles);
+                        me.$.pathwayViewer.set('sessionFileNameMap', me.fileNameMap);
+                        me.$.pathwayViewer.set('path', 'sifs4CellMaps');
+                        me.$.pathwayViewer.reload();
+                        me.set('reportFile', me.getFileFromName('report.xml'));
                         var attr = me.reportFile.attributes;
                         if (attr && attr.pathact != null && attr.pathact.geneList != null) {
                             var geneList = attr.pathact.geneList;
@@ -599,161 +454,93 @@
                             me._loadGeneSearchRelatedDrugList(relatedDrugList);
 
                         }
-
                         me._loadReport();
                         me._loadInputGenes();
-
+                        // me.loading = false;
                     });
-
                 }
             },
-
-            _loadPathwayList: function(o) {
-                console.log(o);
-                var pwChangedCount = 0;
-                var pathwayList = [];
-                var selectedPathway;
-                for (var i = 0; i < o.length; i++) {
-                    var pw = o[i];
-                    // console.log(pw.haschanged);
-                    if (pw.haschanged === true) {
-                        pwChangedCount++;
-                    }
-                    pathwayList.push(pw);
-
-                    if (this.selectedPathway != null && this.selectedPathway.id == pw.id) {
-                        selectedPathway = pw;
+            _createFilePathMap: function(files) {
+                this.fileNameMap = {};
+                var jobRelativePath;
+                for (var i = 0; i < files.length; i++) {
+                    var f = files[i];
+                    if (this.jobItem.folder._id != f._id) {
+                        jobRelativePath = f.path.replace(this.jobItem.folder.path + '/', '');
+                        this.fileNameMap[jobRelativePath] = f;
                     }
                 }
-                this.set('pwChangedCount', pwChangedCount);
-                o.sort(this._pwSortFn);
-                this.set('pathwayList', o);
-                if (selectedPathway != null) {
-                    this._selectPathway(selectedPathway);
+            },
+            getFileFromName: function(name) {
+                var file = this.fileNameMap[name];
+                if (file != null) {
+                    return file;
                 } else {
-                    this._selectPathway(o[0]);
+                    /* Old versions compatibility */
+                    for (var key in this.fileNameMap) {
+                        if (key == 'report/' + name) {
+                            return this.fileNameMap[key];
+                        }
+                    }
                 }
             },
-            handlePathwayClick: function(e) {
-                console.log(e.model.item);
-                this._hideKoControl();
-                this._selectPathway(e.model.item);
-            },
-            handlePathClick: function(e) {
-                this._hideKoControl();
-                var path = e.model.item;
-                console.log(path);
-                if (this.selectedPath != null && path.id === this.selectedPath.id) {
-                    this.set('selectedPath', null);
-                    this.$.networkViewer.$.nodeRender.removeVisualSet('opacity');
-                    this.$.networkViewer.$.edgeRender.removeVisualSet('opacity');
-                } else {
-                    this.set('selectedPath', path);
-                    var attrId = e.model.item.id.split('__').pop();
-                    this.$.networkViewer.$.nodeRender.applyVisualSet({
-                        attribute: attrId,
-                        displayProperty: 'opacity',
-                        type: "discrete",
-                        matches: {
-                            "1": "1",
-                            "0": "0.1"
-                        },
-                        points: [],
-                        parse: "string",
-                        enabled: true
-                    });
-                    this.$.networkViewer.$.edgeRender.applyVisualSet({
-                        attribute: attrId,
-                        displayProperty: 'opacity',
-                        type: "discrete",
-                        matches: {
-                            "1": "1",
-                            "0": "0.1"
-                        },
-                        points: [],
-                        parse: "string",
-                        enabled: true
-                    });
-                }
-
-            },
-            _selectPathway: function(pw) {
+            handleSelectCategory: function(e) {
                 var me = this;
-                var pwid = pw.id;
-                this.set('selectedPathway', pw);
-                pw.paths.sort(this._pwSortFn);
-                this.set('pathList', pw.paths);
-                var circuitChangedCount = 0;
-                for (var i = 0; i < this.pathList.length; i++) {
-                    var path = this.pathList[i];
-                    if (path.haschanged === true) {
-                        circuitChangedCount++;
-                    }
-                }
-                this.set('circuitChangedCount', circuitChangedCount);
-
-                console.log(pwid);
-                this.loading = true;
-                // this.reportFile.attributes.pathact
-                SteviaManager.getFileContent(this._resultFileNameMap[pwid + '.sif']._id, function(sifContent) {
-                    SteviaManager.getFileContent(me._resultFileNameMap[pwid + '.natt']._id, function(nattContent) {
-                        SteviaManager.getFileContent(me._resultFileInitNameMap[pwid + '.natt']._id, function(nattInitContent) {
-                            SteviaManager.getFileContent(me._resultFileNameMap[pwid + '.eatt']._id, function(eattContent) {
-
-                                //init expression attributes
-                                new AttributeNetworkDataAdapter({
-                                    async: false,
-                                    useFirstLineAsColumnNames: true,
-                                    dataSource: new StringDataSource(nattInitContent),
-                                    handlers: {
-                                        'data:load': function(e) {
-                                            me._pathwayInitExpression = {};
-                                            for (var i = 0; i < e.attributes.length; i++) {
-                                                var att = e.attributes[i];
-                                                me._pathwayInitExpression[att.id] = att.exp;
-                                            }
-                                        }
+                var category = e.detail;
+                if (category != null) {
+                    this._hideKoControl();
+                    this.loading = true;
+                    var init_natt = this.getFileFromName('sifs4CellMaps_init/' + category.id + '.natt');
+                    SteviaManager.getFileContent(init_natt._id, function(nattInitContent) {
+                        //init expression attributes
+                        new AttributeNetworkDataAdapter({
+                            async: false,
+                            useFirstLineAsColumnNames: true,
+                            dataSource: new StringDataSource(nattInitContent),
+                            handlers: {
+                                'data:load': function(e) {
+                                    me._pathwayInitExpression = {};
+                                    for (var i = 0; i < e.attributes.length; i++) {
+                                        var att = e.attributes[i];
+                                        me._pathwayInitExpression[att.id] = att.exp;
                                     }
-                                });
-
-                                me.$.networkViewer.loadSif(sifContent);
-                                me.$.networkViewer.loadNodeAttributes(nattContent, true);
-                                me.$.networkViewer.loadEdgeAttributes(eattContent, true);
-
-                                // me.$.networkViewer.$.nodeRender.applyDirect('color', 'strokeColor');
-                                me.$.networkViewer.$.nodeRender.applyDirect('exp_col', 'color');
-                                me.$.networkViewer.$.nodeRender.applyDirect('shape', 'shape');
-                                me.$.networkViewer.$.nodeRender.applyDirect('width', 'size');
-                                me.$.networkViewer.$.nodeRender.applyDirect('labelSize', 'labelSize');
-
-                                me.$.networkViewer.$.edgeRender.applyDirect('color', 'color');
-                                me.$.networkViewer.$.edgeRender.applyDirect('head', 'shape');
-                                /*EXAMPLE*/
-                                // nodeRender.applyVisualSet({
-                                //     attribute: "drugs",
-                                //     displayProperty: "color",
-                                //     enabled: true,
-                                //     matches: matches,
-                                //     parse: "string",
-                                //     type: "categorical"
-                                // });
-
-                                me.$.networkViewer.setVertexDefaultPositionX('X', true, false);
-                                me.$.networkViewer.setVertexDefaultPositionY('Y', true, true);
-                                // me.$.networkViewer.setVertexDefaultLabelAttribute('genesList');
-                                me.$.networkViewer.setVertexDefaultLabelAttribute('label');
-
-                                me._updateGeneListVerticesStroke();
-
-                                me.loading = false;
-                            });
+                                    me.loading = false;
+                                }
+                            }
                         });
                     });
-                });
+                    // this.$.pathwayViewer.$.networkViewer.$.nodeRender.applyDirect('color', 'strokeColor');
+                    this.$.pathwayViewer.$.networkViewer.$.nodeRender.applyDirect('exp_col', 'color');
+                    this.$.pathwayViewer.$.networkViewer.$.nodeRender.applyDirect('shape', 'shape');
+                    this.$.pathwayViewer.$.networkViewer.$.nodeRender.applyDirect('width', 'size');
+                    this.$.pathwayViewer.$.networkViewer.$.nodeRender.applyDirect('labelSize', 'labelSize');
+
+                    this.$.pathwayViewer.$.networkViewer.$.edgeRender.applyDirect('color', 'color');
+                    this.$.pathwayViewer.$.networkViewer.$.edgeRender.applyDirect('head', 'shape');
+                    /*EXAMPLE*/
+                    // nodeRender.applyVisualSet({
+                    //     attribute: "drugs",
+                    //     displayProperty: "color",
+                    //     enabled: true,
+                    //     matches: matches,
+                    //     parse: "string",
+                    //     type: "categorical"
+                    // });
+
+                    this.$.pathwayViewer.$.networkViewer.setVertexDefaultPositionX('X', true, false);
+                    this.$.pathwayViewer.$.networkViewer.setVertexDefaultPositionY('Y', true, true);
+                    // this.$.pathwayViewer.$.networkViewer.setVertexDefaultLabelAttribute('genesList');
+                    this.$.pathwayViewer.$.networkViewer.setVertexDefaultLabelAttribute('label');
+
+                    this._updateGeneListVerticesStroke();
+                }
+            },
+            handleSelectCircuit: function() {
+                this._hideKoControl();
             },
             _updateGeneListVerticesStroke: function() {
                 var v, name, names;
-                if (this.$.networkViewer.vertices != null) {
+                if (this.$.pathwayViewer.$.networkViewer.vertices != null) {
 
                     var geneList, relatedGeneList;
                     geneList = this.$.geneSearch.selectedGeneList;
@@ -782,8 +569,8 @@
                         }
                     }
 
-                    for (var i = 0; i < this.$.networkViewer.vertices.length; i++) {
-                        v = this.$.networkViewer.vertices[i];
+                    for (var i = 0; i < this.$.pathwayViewer.$.networkViewer.vertices.length; i++) {
+                        v = this.$.pathwayViewer.$.networkViewer.vertices[i];
                         v.renderer.set('strokeSize', 2);
                         v.renderer.set('strokeColor', '#888888');
 
@@ -813,9 +600,8 @@
                     }, function() {});
 
                     this.set('_inputGeneList', []);
-                    this.set('selectedPathway', null);
                     this.$.geneSearch.clean();
-                    this.$.networkViewer.startOver();
+                    this.$.pathwayViewer.clean();
 
                     var query = {
                         workingdirId: this.jobFolder._id
@@ -842,12 +628,12 @@
                             body: JSON.stringify(args),
                             success: function(response) {
                                 // var response = JSON.parse(this.responseText);
-                                SteviaManager.getFileContent(me._resultFileNameMap['path_info.json']._id, function(content) {
-                                    me.loading = false;
-                                    me._loadPathwayList(JSON.parse(content));
-                                    me._loadReport();
-                                    me._loadInputGenes();
-                                });
+                                me.$.pathwayViewer.set('sessionFileNameMap', me.fileNameMap);
+                                me.$.pathwayViewer.reload();
+                                me._loadReport();
+                                me._loadInputGenes();
+                                me.loading = false;
+
                             },
                             error: function() {
                                 me.loading = false;
@@ -960,13 +746,11 @@
                             body: JSON.stringify(args),
                             success: function(response) {
                                 // var response = JSON.parse(this.responseText);
-                                me.loading = false;
-                                SteviaManager.getFileContent(me._resultFileNameMap['path_info.json']._id, function(content) {
-                                    me._loadPathwayList(JSON.parse(content));
-                                    me.loading = false;
-                                });
+                                me.$.pathwayViewer.set('sessionFileNameMap', me.fileNameMap);
+                                me.$.pathwayViewer.reload();
                                 me._loadReport();
                                 me._loadInputGenes();
+                                me.loading = false;
                             },
                             error: function() {
                                 me.loading = false;
@@ -1048,7 +832,7 @@
                 }
             },
             handleNetworkViewerVertexClick: function(e) {
-                var v = this.$.networkViewer.graph.getVertexById(e.detail.vertexId);
+                var v = this.$.pathwayViewer.$.networkViewer.graph.getVertexById(e.detail.vertexId);
                 this.lastSelectedNode = v.attributes.label;
 
                 if (v.id.indexOf("_func") == -1 && v.attributes.shape != "circle") {
@@ -1089,7 +873,7 @@
                     }
                     /*****/
 
-                    var nvbcr = this.$.networkViewer.getBoundingClientRect();
+                    var nvbcr = this.$.pathwayViewer.$.networkViewer.getBoundingClientRect();
                     this._showKoControl(e.detail.x + nvbcr.left + 15, e.detail.y + nvbcr.top + 15);
                 } else {
                     this._hideKoControl();
@@ -1133,20 +917,21 @@
             },
             _loadInputGenes: function() {
                 var me = this;
-                SteviaManager.getFileContent(this._resultFileNameMap['ko.txt']._id, function(content) {
+                SteviaManager.getFileContent(this.getFileFromName('ko.txt')._id, function(content) {
                     var parsedContent = me._parseTabularFile(content);
                     me.set('_inputGeneList', parsedContent);
                 });
             },
             _loadReport: function() {
                 var me = this;
-                var result = document.createElement('hipathia' + '-result');
-                var el = me.$.reportPanelContainer.querySelector('hipathia-result');
+                var report = document.createElement('stv-report');
+                report.hideJobInformation = true;
+                var el = me.$.reportPanelContainer.querySelector('stv-report');
                 if (el != null) {
                     Polymer.dom(me.$.reportPanelContainer).removeChild(el);
                 }
-                result.set('job', me.jobItem);
-                Polymer.dom(me.$.reportPanelContainer).appendChild(result);
+                report.set('job', me.jobItem);
+                Polymer.dom(me.$.reportPanelContainer).appendChild(report);
 
                 // SteviaManager.getFileContent(me._resultFileNameMap['report.xml']._id, function(content) {
                 //     var parser = new DOMParser();

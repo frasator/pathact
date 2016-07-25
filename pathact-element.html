@@ -19,11 +19,11 @@
 
 <link rel="import" href="bower_components/stevia-elements/src/file/stv-file-browser.html">
 <link rel="import" href="bower_components/stevia-elements/src/job/stv-job-browser.html">
+<link rel="import" href="bower_components/stevia-elements/src/report/stv-report.html">
 
 <link rel="import" href="src/pathact-home.html">
 <link rel="import" href="src/viewer/pathact-viewer.html">
 <link rel="import" href="src/pathact-form.html">
-<link rel="import" href="src/hipathia-result.html">
 
 <dom-module id="pathact-element">
     <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning"></style>
@@ -289,7 +289,7 @@
                 if (job && job.status === 'DONE') {
                     if (this.$.pathactViewer.jobItem != null) {
                         if (this.$.pathactViewer.jobItem.id !== job.id) {
-                            this.$.pathactViewer.set('jobItem', job);
+                            this.$.pathactViewer.set('job', job);
                         }
                         this.set('selectedOption', 'viewer');
                     } else {
