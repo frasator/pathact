@@ -19,6 +19,7 @@
 
 <link rel="import" href="bower_components/stevia-elements/src/file/stv-file-browser.html">
 <link rel="import" href="bower_components/stevia-elements/src/job/stv-job-browser.html">
+<link rel="import" href="bower_components/stevia-elements/src/stv-cluster-status.html">
 <link rel="import" href="bower_components/stevia-elements/src/report/stv-report.html">
 
 <link rel="import" href="src/pathact-home.html">
@@ -133,9 +134,9 @@
         </div>
 
         <stv-header id="stvHeader" hide-jobs hide-browse selected-option="{{selectedOption}}" user-data="{{userData}}" on-login="handleLogin" on-logout="handleLogout">
-            <!-- <div class="icon">
+            <div class="icon">
                 <img src="images/icon.svg" style="height: 54px;margin: 8px 3px 0 0;">
-            </div> -->
+            </div>
             <div class="title" style="margin-left:15px;">
                 <span>Path<span style="font-weight:normal;">Act</span></span>
             </div>
@@ -172,6 +173,7 @@
                     </li>
                 </ul>
             </stv-dropdown>
+            <stv-cluster-status id="clusterStatus" type="dark" class="cluster-status"></stv-cluster-status>
         </stv-header>
 
         <stv-footer menu-option="home,login,signup,profile,remember">
