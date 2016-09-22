@@ -1,4 +1,7 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <dom-module id="pathact-gene-search">
+    <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning"></style>
     <style>
         :host {
             display: block;
@@ -31,13 +34,20 @@
             border-bottom: 0;
         }
 
-        jso-search {
+        stv-search {
             width: 100%;
+        }
+
+        #selectedGeneList,
+        #relatedDrugList,
+        #selectedDrugList,
+        #relatedGeneList{
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
         }
     </style>
     <template>
-        <label class="jso"><i class="fa fa-flash" style="color:#cf1c1c"></i> Add genes:</label>
-        <jso-search id="geneSearch" placeholder="Gene search..." on-item-select="handleGeneSearchSelect" empty-message="No genes found in the available signaling pathways."></jso-search>
+        <label class="stv"><i class="fa fa-flash" style="color:#cf1c1c"></i> Add genes:</label>
+        <stv-search id="geneSearch" placeholder="Gene search" on-item-select="handleGeneSearchSelect" empty-message="No genes found in the available signaling pathways."></stv-search>
         <div id="selectedGeneList" class="list with-search flex-2">
             <template is="dom-repeat" items="{{selectedGeneList}}">
                 <pathact-gene-option name="{{item.name}}" value="{{item.value}}" manual="{{item.manual}}" drugactions="{{item.drugactions}}" on-remove="handleRemoveGene" on-change="handleChangeGene"></pathact-gene-option>
@@ -50,15 +60,15 @@
             </template>
         </div>
 
-        <label class="jso" style="margin-top:10px;"><i class="fa fa-flask" style="color:#7acb1b"></i> Add drugs:</label>
-        <jso-search id="drugSearch" placeholder="Drug search..." display-key="n" min-query-length="3" on-item-select="handleDrugSearchSelect" empty-message="No drugs found."></jso-search>
+        <label class="stv" style="margin-top:10px;"><i class="fa fa-flask" style="color:#7acb1b"></i> Add drugs:</label>
+        <stv-search id="drugSearch" placeholder="Drug search" display-key="n" min-query-length="3" on-item-select="handleDrugSearchSelect" empty-message="No drugs found."></stv-search>
         <div id="selectedDrugList" class="list with-search flex" style="height:100px;">
             <template is="dom-repeat" items="{{selectedDrugList}}">
                 <pathact-drug-item drug="{{item}}" on-remove-drug-item="handleRemoveDrug"></pathact-drug-item>
             </template>
         </div>
 
-        <label class="jso" style="margin-top:10px;"><i class="fa fa-flash" style="color:#7acb1b"></i> Genes affected by drugs:</label>
+        <label class="stv" style="margin-top:10px;"><i class="fa fa-flash" style="color:#7acb1b"></i> Genes affected by drugs:</label>
         <div id="relatedGeneList" class="list flex-3">
             <template is="dom-repeat" items="{{relatedGeneList}}">
                 <pathact-gene-option name="{{item.name}}" manual="{{item.manual}}" drugactions="{{item.drugactions}}"></pathact-gene-option>

@@ -7,9 +7,7 @@ PathAct is a web tool that enables the study of the consequences that Knockouts(
 ```bash
 git clone https://github.com/babelomics/pathact.git
 cd pathact/
-git submodule update --init
 ```
-
 
 ## Compiling CSS and JavaScript
 
@@ -18,21 +16,25 @@ cd pathact/
 ```
 
 ### Install Node
-To install node click [here.](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager)
+To install node click [here.](https://nodejs.org/en/download/package-manager/)
 
 **What is `npm`?** npm stands for [node packaged modules](http://npmjs.org/) is the node dependency manager.
 
 ### Install bower components and npm modules
 
 ```bash
-
 sudo npm install -g bower
 npm install
 bower install
-cd lib/jsorolla
-bower install
+```
 
 ### Run builder
+```bash
 npm run build
 ```
 Minimized files will be located in the `/build` dir.
+
+
+### Back-end Configuration
+PathAct uses [stevia-server](https://github.com/babelomics/stevia-server) as back-end for user, file and job management.
+To use your own stevia-server installation you must modify the **conf/config.js** file and change the STEVIA_SERVER_HOST to the new URL.

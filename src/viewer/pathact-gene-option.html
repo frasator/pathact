@@ -1,4 +1,7 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <dom-module id="pathact-gene-option">
+    <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning"></style>
     <style>
         :host {
             display: block;
@@ -67,7 +70,7 @@
         <div id="main" class="horizontal layout center">
             <div class="name flex">{{name}}</div>
             <div class="value">
-                <input id="input" class="jso" type="number" max="1" min="0" step="0.05" value="{{internalValue::input}}" readonly$="{{checkAtLeastOneDrugAction(drugactions)}}" />
+                <input id="input" class="stv" type="number" max="1" min="0" step="0.05" value="{{internalValue::input}}" readonly$="{{checkAtLeastOneDrugAction(drugactions)}}" />
             </div>
             <div hidden="{{!manual}}" class="delete" on-click="handleRemove">
                 <i class="fa fa-times"></i>
