@@ -22,14 +22,15 @@
 <link rel="import" href="bower_components/stevia-elements/src/stv-cluster-status.html">
 <link rel="import" href="bower_components/stevia-elements/src/report/stv-report.html">
 
+<link rel="import" href="bower_components/pathway-viewer/pathway-drug-viewer.html">
+
 <link rel="import" href="src/pathact-home.html">
-<link rel="import" href="src/viewer/pathact-viewer.html">
 <link rel="import" href="src/pathact-form.html">
 
 <dom-module id="pathact-element">
     <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning"></style>
     <style>
-        :host {
+         :host {
             display: block;
             position: relative;
             cursor: default;
@@ -82,7 +83,7 @@
             overflow-y: auto;
         }
 
-        pathact-viewer {
+        #viewer {
             height: calc(100vh - 60px);
             overflow-y: auto;
         }
@@ -123,7 +124,7 @@
         </div>
 
         <div class="content" menu-option="viewer">
-            <pathact-viewer id="pathactViewer" drug-action-list="{{drugActionList}}" drug-action-map="{{drugActionMap}}" fold-change="{{foldChange}}" on-goback="handleViewerGoBack"></pathact-viewer>
+            <pathway-drug-viewer id="viewer" drug-action-list="{{drugActionList}}" drug-action-map="{{drugActionMap}}" job-update-args="{{jobUpdateArgs}}" job-clear-args="{{jobClearArgs}}" fold-change="{{foldChange}}" on-goback="handleViewerGoBack"></pathway-drug-viewer>
         </div>
         <div class="content" menu-option="form">
             <pathact-form id="pathactForm" selectedOption="{{selectedOption}}" bioformats="{{bioformats}}" user-data="{{userData}}" allowed-tools="{{allowedTools}}" on-jobselect="handleJobSelect" on-need-refresh="handleUserNeedRefresh"></pathact-form>
@@ -146,12 +147,12 @@
 
             <div id="menu" class="menu horizontal layout center flex">
                 <div class="flex"></div>
-                <div title="Jobs" class="option" on-click="handleLoggedOnlyMenuOption" data-option="form" show-on-login>
+                <div title="Jobs" class="option" on-click="handleMenuOption" data-option="form" login-required login-visible>
                     <i class="fa fa-rocket"></i>
                     <span class="option-text">Jobs</span>
                 </div>
                 <div style="margin-left:3vw;"></div>
-                <div title="Settings" class="option" on-click="handleLoggedOnlyMenuPanel" data-panel="configureDrugActionsPanel" show-on-login>
+                <div title="Settings" class="option" on-click="handleMenuPanel" data-panel="configureDrugActionsPanel" login-required login-visible>
                     <i class="fa fa-sliders"></i>
                     <span class="option-text">Settings</span>
                 </div>
@@ -208,6 +209,12 @@
                 },
                 foldChange: {
                     type: Number
+                },
+                jobUpdateArgs: {
+                    type: Object
+                },
+                jobClearArgs: {
+                    type: Object
                 }
             },
             selectedOptionChanged: function(neo, old) {
@@ -216,7 +223,6 @@
             ready: function() {
                 var me = this;
                 this.selectedOption = "home";
-                this.checkShowMenuOnLogin();
 
                 var fc = localStorage.getItem("pathact_foldchange");
                 if (fc == null) {
@@ -235,6 +241,17 @@
                     this.set('drugActionList', actions);
                     this.set('drugActionMap', actionsMap);
                 }
+
+                this.set('jobUpdateArgs', {
+                    tool: 'hipathia',
+                    execution: 'pathact-update',
+                    executable: 'pathact-update.sh'
+                });
+                this.set('jobClearArgs', {
+                    tool: 'hipathia',
+                    execution: 'pathact-clear',
+                    executable: 'pathact-clear.sh'
+                });
             },
             handleResetDefaults: function(e) {
                 this.loadDrugActions();
@@ -276,7 +293,7 @@
                 }
                 localStorage.setItem("pathact_actionsmap", JSON.stringify(actionsMap));
                 this.set('drugActionMap', actionsMap);
-                this.$.pathactViewer.$.geneSearch._processDrugRelatedGenes();
+                this.$.viewer.$.geneSearch._processDrugRelatedGenes();
             },
             handleFoldChange: function() {
                 var fc = localStorage.setItem("pathact_foldchange", this.$.foldChangeInput.value);
@@ -289,13 +306,13 @@
             handleJobSelect: function(e) {
                 var job = e.detail;
                 if (job && job.status === 'DONE') {
-                    if (this.$.pathactViewer.jobItem != null) {
-                        if (this.$.pathactViewer.jobItem.id !== job.id) {
-                            this.$.pathactViewer.set('job', job);
+                    if (this.$.viewer.jobItem != null) {
+                        if (this.$.viewer.jobItem.id !== job.id) {
+                            this.$.viewer.set('job', job);
                         }
                         this.set('selectedOption', 'viewer');
                     } else {
-                        this.$.pathactViewer.set('jobItem', job);
+                        this.$.viewer.set('jobItem', job);
                         this.set('selectedOption', 'viewer');
                     }
                 }
@@ -313,16 +330,11 @@
                     this._lastExampleRequest = null;
                 }
                 this.$.home.isLogged = true;
-                this.checkShowMenuOnLogin();
                 this.setMenu('form');
             },
             handleLogout: function() {
                 this.$.home.isLogged = false;
                 this.setMenu('home');
-                this.checkShowMenuOnLogin();
-            },
-            handleUserNeedRefresh: function() {
-                this.$.stvHeader.getUserInfo(true);
             },
             handleHomeStart: function() {
                 if (this.$.stvHeader.isLogged != true) {

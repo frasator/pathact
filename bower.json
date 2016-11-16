@@ -26,7 +26,6 @@
         "iron-list": "^1.2.8",
         "fontawesome": "*",
         "stevia-elements": "https://github.com/babelomics/stevia-elements.git#master",
-        "network-viewer": "https://github.com/babelomics/network-viewer.git#master",
         "pathway-viewer": "http://gitlab.bioinfo.cipf.es/bioinfo/pathway-viewer.git#master"
     },
     "private": true
