@@ -3,7 +3,7 @@
 <dom-module id="pathact-home">
     <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning"></style>
     <style>
-        :host {
+         :host {
             display: block;
             position: relative;
             box-sizing: border-box;
@@ -98,20 +98,24 @@
             text-decoration: none;
             color: var(--accent-color);
         }
+
+        .image-partner{
+            height:60px;
+        }
     </style>
     <template>
 
         <div id="main">
             <div class="horizontal layout center-justified center">
-                <!-- <div>
+                <div>
                     <img id="image" src="../images/icon.svg">
-                </div> -->
-                <div class="vertical layout center">
+                </div>
+                <div class="vertical layout center" style="width:465px;">
                     <div class="application">
                         Path<span style="font-weight:normal;">Act</span>
                     </div>
                     <div class="description">
-                        Actionable pathway workshop
+                        <b>Act</b>ionable <b>Path</b>way Workshop
                     </div>
                     <br>
                     <div id="button" class="stv-btn stv-btn-shdw" on-click="handleStart" hidden$="{{isLogged}}">
@@ -129,6 +133,9 @@
             <div class="title2">Note:</div>
             <div class="paragraph2">
                 PathAct web application makes an intensive use of the HTML5 standard and other cutting-edge web technologies such as Web Components, so only modern web browsers are fully supported.
+            </div>
+            <div class="horizontal layout">
+                <!-- <img class="image-partner" src="../images/elixir.svg"> -->
             </div>
         </div>
 

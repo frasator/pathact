@@ -19,16 +19,18 @@
 
 <link rel="import" href="bower_components/stevia-elements/src/file/stv-file-browser.html">
 <link rel="import" href="bower_components/stevia-elements/src/job/stv-job-browser.html">
+<link rel="import" href="bower_components/stevia-elements/src/stv-cluster-status.html">
 <link rel="import" href="bower_components/stevia-elements/src/report/stv-report.html">
 
+<link rel="import" href="bower_components/pathway-viewer/pathway-drug-viewer.html">
+
 <link rel="import" href="src/pathact-home.html">
-<link rel="import" href="src/viewer/pathact-viewer.html">
 <link rel="import" href="src/pathact-form.html">
 
 <dom-module id="pathact-element">
     <style is="custom-style" include="iron-flex iron-flex-reverse iron-flex-alignment iron-flex-factors iron-positioning"></style>
     <style>
-        :host {
+         :host {
             display: block;
             position: relative;
             cursor: default;
@@ -81,7 +83,7 @@
             overflow-y: auto;
         }
 
-        pathact-viewer {
+        #viewer {
             height: calc(100vh - 60px);
             overflow-y: auto;
         }
@@ -89,6 +91,32 @@
         pathact-form {
             height: calc(100vh - 60px);
             overflow-y: auto;
+        }
+
+        #reportPanel {
+            position: fixed;
+            height: 80%;
+            width: 80%;
+            top: 60px;
+            left: 0;
+        }
+
+        #reportPanelContainer {
+            box-sizing: border-box;
+            width: 100%;
+            /*height: calc(100% - 60px);*/
+            background-color: #fff !important;
+            overflow-y: scroll;
+            overflow-x: none;
+        }
+
+        #reportButton {
+            background-color: var(--dark-button-color) !important;
+            color: var(--text-primary-color) !important;
+        }
+
+        #reportButton:hover {
+            background-color: var(--light-button-color) !important;
         }
     </style>
     <template>
@@ -114,7 +142,7 @@
                     <br>
                     <div class="list horizontal layout wrap">
                         <template is="dom-repeat" items="{{drugActionList}}">
-                            <pathact-action-option style="width:315px" name="{{item.name}}" value="{{item.value}}" on-change="handleActionWeightChange"></pathact-action-option>
+                            <pdv-action-option style="width:315px" name="{{item.name}}" value="{{item.value}}" on-change="handleActionWeightChange"></pdv-action-option>
                         </template>
                     </div>
                 </div>
@@ -122,7 +150,20 @@
         </div>
 
         <div class="content" menu-option="viewer">
-            <pathact-viewer id="pathactViewer" drug-action-list="{{drugActionList}}" drug-action-map="{{drugActionMap}}" fold-change="{{foldChange}}" on-goback="handleViewerGoBack"></pathact-viewer>
+            <pathway-drug-viewer id="viewer" path="sifs4CellMaps" init-path="sifs4CellMaps_init" valid-genes-file-name="valid_hgnc_signaling_genes.txt" drug-action-list="{{drugActionList}}" drug-action-map="{{drugActionMap}}" job-update-args="{{jobUpdateArgs}}" job-clear-args="{{jobClearArgs}}" fold-change="{{foldChange}}" on-goback="handleViewerGoBack" on-job-clear="handleJobClear" on-job-update="handleJobUpdate">
+                <div id="reportButton" on-click="handleReportButton" class="left-label stv-btn stv-btn-shdw" style="margin:0 3px 0 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show report</div>
+            </pathway-drug-viewer>
+            <stv-panel hidden closable fixed modal id="reportPanel">
+                <div class="header">
+                    Report
+                </div>
+                <div id="reportPanelContainer" class="container">
+                    <stv-report id="report" hide-job-information></stv-report>
+                </div>
+                <div class="footer flex horizontal layout center-justified">
+                    <div class="stv-btn stv-btn-shdw" style="width:250px;" on-click="handleCloseReport">Close</div>
+                </div>
+            </stv-panel>
         </div>
         <div class="content" menu-option="form">
             <pathact-form id="pathactForm" selectedOption="{{selectedOption}}" bioformats="{{bioformats}}" user-data="{{userData}}" allowed-tools="{{allowedTools}}" on-jobselect="handleJobSelect" on-need-refresh="handleUserNeedRefresh"></pathact-form>
@@ -133,9 +174,9 @@
         </div>
 
         <stv-header id="stvHeader" hide-jobs hide-browse selected-option="{{selectedOption}}" user-data="{{userData}}" on-login="handleLogin" on-logout="handleLogout">
-            <!-- <div class="icon">
+            <div class="icon">
                 <img src="images/icon.svg" style="height: 54px;margin: 8px 3px 0 0;">
-            </div> -->
+            </div>
             <div class="title" style="margin-left:15px;">
                 <span>Path<span style="font-weight:normal;">Act</span></span>
             </div>
@@ -145,12 +186,12 @@
 
             <div id="menu" class="menu horizontal layout center flex">
                 <div class="flex"></div>
-                <div title="Jobs" class="option" on-click="handleLoggedOnlyMenuOption" data-option="form" show-on-login>
+                <div title="Jobs" class="option" on-click="handleMenuOption" data-option="form" login-required login-visible>
                     <i class="fa fa-rocket"></i>
                     <span class="option-text">Jobs</span>
                 </div>
                 <div style="margin-left:3vw;"></div>
-                <div title="Settings" class="option" on-click="handleLoggedOnlyMenuPanel" data-panel="configureDrugActionsPanel" show-on-login>
+                <div title="Settings" class="option" on-click="handleMenuPanel" data-panel="configureDrugActionsPanel" login-required login-visible>
                     <i class="fa fa-sliders"></i>
                     <span class="option-text">Settings</span>
                 </div>
@@ -172,10 +213,11 @@
                     </li>
                 </ul>
             </stv-dropdown>
+            <stv-cluster-status id="clusterStatus" type="dark" class="cluster-status"></stv-cluster-status>
         </stv-header>
 
         <stv-footer menu-option="home,login,signup,profile,remember">
-            PathAct {{version}}
+            PathAct v{{version}}
             <br> Created by
             <span style="font-weight:bold;">Computational Genomics Department</span>
             <br> Principe Felipe Research Center, Valencia, Spain
@@ -206,6 +248,15 @@
                 },
                 foldChange: {
                     type: Number
+                },
+                jobItem: {
+                    type: Object
+                },
+                jobUpdateArgs: {
+                    type: Object
+                },
+                jobClearArgs: {
+                    type: Object
                 }
             },
             selectedOptionChanged: function(neo, old) {
@@ -214,7 +265,6 @@
             ready: function() {
                 var me = this;
                 this.selectedOption = "home";
-                this.checkShowMenuOnLogin();
 
                 var fc = localStorage.getItem("pathact_foldchange");
                 if (fc == null) {
@@ -233,6 +283,17 @@
                     this.set('drugActionList', actions);
                     this.set('drugActionMap', actionsMap);
                 }
+
+                this.set('jobUpdateArgs', {
+                    tool: 'hipathia',
+                    execution: 'pathact-update',
+                    executable: 'pathact-update.sh'
+                });
+                this.set('jobClearArgs', {
+                    tool: 'hipathia',
+                    execution: 'pathact-clear',
+                    executable: 'pathact-clear.sh'
+                });
             },
             handleResetDefaults: function(e) {
                 this.loadDrugActions();
@@ -274,7 +335,7 @@
                 }
                 localStorage.setItem("pathact_actionsmap", JSON.stringify(actionsMap));
                 this.set('drugActionMap', actionsMap);
-                this.$.pathactViewer.$.geneSearch._processDrugRelatedGenes();
+                this.$.viewer.$.geneSearch._processDrugRelatedGenes();
             },
             handleFoldChange: function() {
                 var fc = localStorage.setItem("pathact_foldchange", this.$.foldChangeInput.value);
@@ -286,17 +347,38 @@
             },
             handleJobSelect: function(e) {
                 var job = e.detail;
-                if (job && job.status === 'DONE') {
-                    if (this.$.pathactViewer.jobItem != null) {
-                        if (this.$.pathactViewer.jobItem.id !== job.id) {
-                            this.$.pathactViewer.set('job', job);
+                var jobFolder = job.folder;
+                if (jobFolder && job.status === 'DONE') {
+                    this.jobItem = job;
+                    if (this.$.viewer.jobFolder != null) {
+                        if (this.$.viewer.jobFolder._id != jobFolder._id) {
+                            this.$.viewer.reset();
+                            this.$.viewer.set('jobFolder', jobFolder);
                         }
-                        this.set('selectedOption', 'viewer');
                     } else {
-                        this.$.pathactViewer.set('jobItem', job);
-                        this.set('selectedOption', 'viewer');
+                        this.$.viewer.reset();
+                        this.$.viewer.set('jobFolder', jobFolder);
                     }
+                    this.set('selectedOption', 'viewer');
+                    this._loadReport();
                 }
+            },
+            handleJobClear: function(e) {
+                this._loadReport();
+            },
+            handleJobUpdate: function(e) {
+                this._loadReport();
+            },
+            _loadReport: function(job) {
+                this.$.report.set('job', null);
+                this.$.report.set('job', this.jobItem);
+            },
+            handleCloseReport: function() {
+                this.$.reportPanel.hide();
+            },
+            handleReportButton: function(e) {
+                var me = this;
+                this.$.reportPanel.show();
             },
             handleCloseJobResult: function(e) {
                 this.set('selectedOption', 'home');
@@ -311,16 +393,11 @@
                     this._lastExampleRequest = null;
                 }
                 this.$.home.isLogged = true;
-                this.checkShowMenuOnLogin();
                 this.setMenu('form');
             },
             handleLogout: function() {
                 this.$.home.isLogged = false;
                 this.setMenu('home');
-                this.checkShowMenuOnLogin();
-            },
-            handleUserNeedRefresh: function() {
-                this.$.stvHeader.getUserInfo(true);
             },
             handleHomeStart: function() {
                 if (this.$.stvHeader.isLogged != true) {
