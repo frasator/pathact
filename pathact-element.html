@@ -92,6 +92,32 @@
             height: calc(100vh - 60px);
             overflow-y: auto;
         }
+
+        #reportPanel {
+            position: fixed;
+            height: 80%;
+            width: 80%;
+            top: 60px;
+            left: 0;
+        }
+
+        #reportPanelContainer {
+            box-sizing: border-box;
+            width: 100%;
+            /*height: calc(100% - 60px);*/
+            background-color: #fff !important;
+            overflow-y: scroll;
+            overflow-x: none;
+        }
+
+        #reportButton {
+            background-color: var(--dark-button-color) !important;
+            color: var(--text-primary-color) !important;
+        }
+
+        #reportButton:hover {
+            background-color: var(--light-button-color) !important;
+        }
     </style>
     <template>
         <div class="content" menu-option="home,form,viewer">
@@ -116,7 +142,7 @@
                     <br>
                     <div class="list horizontal layout wrap">
                         <template is="dom-repeat" items="{{drugActionList}}">
-                            <pathact-action-option style="width:315px" name="{{item.name}}" value="{{item.value}}" on-change="handleActionWeightChange"></pathact-action-option>
+                            <pdv-action-option style="width:315px" name="{{item.name}}" value="{{item.value}}" on-change="handleActionWeightChange"></pdv-action-option>
                         </template>
                     </div>
                 </div>
@@ -124,7 +150,20 @@
         </div>
 
         <div class="content" menu-option="viewer">
-            <pathway-drug-viewer id="viewer" drug-action-list="{{drugActionList}}" drug-action-map="{{drugActionMap}}" job-update-args="{{jobUpdateArgs}}" job-clear-args="{{jobClearArgs}}" fold-change="{{foldChange}}" on-goback="handleViewerGoBack"></pathway-drug-viewer>
+            <pathway-drug-viewer id="viewer" path="sifs4CellMaps" init-path="sifs4CellMaps_init" valid-genes-file-name="valid_hgnc_signaling_genes.txt" drug-action-list="{{drugActionList}}" drug-action-map="{{drugActionMap}}" job-update-args="{{jobUpdateArgs}}" job-clear-args="{{jobClearArgs}}" fold-change="{{foldChange}}" on-goback="handleViewerGoBack" on-job-clear="handleJobClear" on-job-update="handleJobUpdate">
+                <div id="reportButton" on-click="handleReportButton" class="left-label stv-btn stv-btn-shdw" style="margin:0 3px 0 0;"><i class="fa fa-file-text-o"></i> &nbsp; Show report</div>
+            </pathway-drug-viewer>
+            <stv-panel hidden closable fixed modal id="reportPanel">
+                <div class="header">
+                    Report
+                </div>
+                <div id="reportPanelContainer" class="container">
+                    <stv-report id="report" hide-job-information></stv-report>
+                </div>
+                <div class="footer flex horizontal layout center-justified">
+                    <div class="stv-btn stv-btn-shdw" style="width:250px;" on-click="handleCloseReport">Close</div>
+                </div>
+            </stv-panel>
         </div>
         <div class="content" menu-option="form">
             <pathact-form id="pathactForm" selectedOption="{{selectedOption}}" bioformats="{{bioformats}}" user-data="{{userData}}" allowed-tools="{{allowedTools}}" on-jobselect="handleJobSelect" on-need-refresh="handleUserNeedRefresh"></pathact-form>
@@ -209,6 +248,9 @@
                 },
                 foldChange: {
                     type: Number
+                },
+                jobItem: {
+                    type: Object
                 },
                 jobUpdateArgs: {
                     type: Object
@@ -305,17 +347,38 @@
             },
             handleJobSelect: function(e) {
                 var job = e.detail;
-                if (job && job.status === 'DONE') {
-                    if (this.$.viewer.jobItem != null) {
-                        if (this.$.viewer.jobItem.id !== job.id) {
-                            this.$.viewer.set('job', job);
+                var jobFolder = job.folder;
+                if (jobFolder && job.status === 'DONE') {
+                    this.jobItem = job;
+                    if (this.$.viewer.jobFolder != null) {
+                        if (this.$.viewer.jobFolder._id != jobFolder._id) {
+                            this.$.viewer.reset();
+                            this.$.viewer.set('jobFolder', jobFolder);
                         }
-                        this.set('selectedOption', 'viewer');
                     } else {
-                        this.$.viewer.set('jobItem', job);
-                        this.set('selectedOption', 'viewer');
+                        this.$.viewer.reset();
+                        this.$.viewer.set('jobFolder', jobFolder);
                     }
+                    this.set('selectedOption', 'viewer');
+                    this._loadReport();
                 }
+            },
+            handleJobClear: function(e) {
+                this._loadReport();
+            },
+            handleJobUpdate: function(e) {
+                this._loadReport();
+            },
+            _loadReport: function(job) {
+                this.$.report.set('job', null);
+                this.$.report.set('job', this.jobItem);
+            },
+            handleCloseReport: function() {
+                this.$.reportPanel.hide();
+            },
+            handleReportButton: function(e) {
+                var me = this;
+                this.$.reportPanel.show();
             },
             handleCloseJobResult: function(e) {
                 this.set('selectedOption', 'home');
