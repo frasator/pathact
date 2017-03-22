@@ -53,9 +53,7 @@
         .content {
             position: absolute;
             width: 100%;
-            top: 60px;
-            /*height: calc(100vh - 60px);*/
-            /*background-color: transparent;*/
+            top: 50px;
         }
 
         #fileBrowser {}
@@ -79,17 +77,17 @@
         }
 
         pathact-home {
-            height: calc(100vh - 160px);
+            height: calc(100vh - 100px);
             overflow-y: auto;
         }
 
         #viewer {
-            height: calc(100vh - 60px);
+            height: calc(100vh - 50px);
             overflow-y: auto;
         }
 
         pathact-form {
-            height: calc(100vh - 60px);
+            height: calc(100vh - 50px);
             overflow-y: auto;
         }
 
@@ -97,14 +95,13 @@
             position: fixed;
             height: 80%;
             width: 80%;
-            top: 60px;
+            top: 50px;
             left: 0;
         }
 
         #reportPanelContainer {
             box-sizing: border-box;
             width: 100%;
-            /*height: calc(100% - 60px);*/
             background-color: #fff !important;
             overflow-y: scroll;
             overflow-x: none;
@@ -185,11 +182,17 @@
             </span>
 
             <div id="menu" class="menu horizontal layout center flex">
-                <div class="flex"></div>
-                <div title="Jobs" class="option" on-click="handleMenuOption" data-option="form" login-required login-visible>
+                <div style="margin-left:4vw;"></div>
+                <div title="" class="option" on-click="handleMenuOption" data-option="home">
+                    <i class="fa fa-home"></i>
+                    <span class="option-text">Home</span>
+                </div>
+                <div style="margin-left:2vw;"></div>
+                <div title="Jobs" class="option" on-click="handleMenuOption" data-option="form" login-required>
                     <i class="fa fa-rocket"></i>
                     <span class="option-text">Jobs</span>
                 </div>
+                <div class="flex"></div>
                 <div style="margin-left:3vw;"></div>
                 <div title="Settings" class="option" on-click="handleMenuPanel" data-panel="configureDrugActionsPanel" login-required login-visible>
                     <i class="fa fa-sliders"></i>
@@ -216,12 +219,10 @@
             <stv-cluster-status id="clusterStatus" type="dark" class="cluster-status"></stv-cluster-status>
         </stv-header>
 
-        <stv-footer menu-option="home,login,signup,profile,remember">
-            PathAct v{{version}}
-            <br> Created by
-            <span style="font-weight:bold;">Computational Genomics Department</span>
-            <br> Principe Felipe Research Center, Valencia, Spain
-            <br> 2016
+        <stv-footer menu-option="home,login,signup,profile,remember" class="horizontal layout center center-justified" style="padding:0 20px;">
+            <div style="text-align:center;">
+                PathAct v{{version}} by <span style="font-weight:bold;">Computational Genomics Department</span>
+                <br> Principe Felipe Research Center, Valencia, Spain 2017</div>
         </stv-footer>
     </template>
 
