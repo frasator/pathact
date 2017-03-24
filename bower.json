@@ -1,18 +1,5 @@
 {
     "name": "pathact",
-    "description": "",
-    "repository": {
-        "type": "git",
-        "url": ""
-    },
-    "main": [
-        "pathact-index.html"
-    ],
-    "authors": [
-        "Francisco Salavert Torres <frasator@gmail.com>"
-    ],
-    "license": "GPL-3.0",
-    "keywords": [],
     "ignore": [
         "**/.*",
         "node_modules",
