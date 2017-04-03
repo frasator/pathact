@@ -60,8 +60,38 @@
 
         #jobBrowser {}
 
-        @media (max-width: 1100px) {
-            .option-text {
+        @media (max-width: 1155px) {
+            span.description {
+                display: none;
+            }
+        }
+
+        @media (max-width: 880px) {
+            div.title {
+                display: none;
+            }
+        }
+
+        @media (max-width: 750px) {
+            div.icon {
+                display: none;
+            }
+        }
+
+        @media (max-width: 690px) {
+            stv-header ::content #right .option-text {
+                display: none;
+            }
+        }
+
+        @media (max-width: 260px) {
+            stv-header ::content .option-text {
+                font-size: 0.8em;
+            }
+        }
+
+        @media (max-width: 260px) {
+            stv-header ::content .option-text {
                 display: none;
             }
         }
@@ -172,7 +202,7 @@
 
         <stv-header id="stvHeader" hide-jobs hide-browse selected-option="{{selectedOption}}" user-data="{{userData}}" on-login="handleLogin" on-logout="handleLogout">
             <div class="icon">
-                <img src="images/icon.svg" style="height: 54px;margin: 8px 3px 0 0;">
+                <img src="images/icon.svg" style="height: 44px;margin: 5px 3px 0 0;">
             </div>
             <div class="title" style="margin-left:15px;">
                 <span>Path<span style="font-weight:normal;">Act</span></span>
